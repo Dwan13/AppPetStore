@@ -29,7 +29,7 @@ fun ProductsScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-            Text("Products", style = MaterialTheme.typography.headlineSmall)
+            Text("Productos", style = MaterialTheme.typography.headlineSmall)
         }
 
         item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {

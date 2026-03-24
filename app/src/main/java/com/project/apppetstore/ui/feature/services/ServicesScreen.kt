@@ -26,7 +26,7 @@ fun ServicesScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            Text("Pet Services", style = MaterialTheme.typography.headlineSmall)
+            Text("Servicios", style = MaterialTheme.typography.headlineSmall)
         }
 
         item {
