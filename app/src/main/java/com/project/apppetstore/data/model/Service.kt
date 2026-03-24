@@ -7,6 +7,7 @@ data class Service(
     val name: String,
     val category: String,
     val description: String,
+    val rating: Double, // Nuevo campo
+    val distanceKm: Double, // Nuevo campo
     @DrawableRes val imageRes: Int
 )
-

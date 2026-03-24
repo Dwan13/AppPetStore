@@ -1,28 +1,76 @@
 package com.project.apppetstore.data.repository
 
-import com.project.adopetshop.R
-import com.project.adopetshop.data.model.ChatMessage
-import com.project.adopetshop.data.model.Pet
-import com.project.adopetshop.data.model.Product
-import com.project.adopetshop.data.model.Service
+import com.project.apppetstore.R
+import com.project.apppetstore.data.model.ChatMessage
+import com.project.apppetstore.data.model.Pet
+import com.project.apppetstore.data.model.Product
+import com.project.apppetstore.data.model.Service
 
 object MockPetShopRepository : PetShopRepository {
 
     override fun getServices(): List<Service> = listOf(
-        Service("1", "Grooming", "Beauty", "Full grooming session for cats and dogs.", R.drawable.img_service_grooming),
-        Service("2", "Veterinary Check", "Health", "General consultation and preventive care.", R.drawable.img_service_vet),
-        Service("3", "Training", "Behavior", "Basic obedience and social training.", R.drawable.img_service_training),
-        Service("4", "Dental Care", "Health", "Oral cleaning and dental recommendations.", R.drawable.img_service_dental),
-        Service("5", "Pet Taxi", "Support", "Safe transport for appointments.", R.drawable.img_service_taxi)
+        Service(
+            id = "1",
+            name = "Dr. Carlos Ruiz",
+            category = "Veterinario a domicilio",
+            description = "Veterinario a domicilio",
+            rating = 4.9,
+            distanceKm = 2.1,
+            imageRes = R.drawable.img_cuidador
+        ),
+        Service(
+            id = "2",
+            name = "Pet Spa",
+            category = "Baño y peluquería",
+            description = "Baño y peluquería",
+            rating = 4.4,
+            distanceKm = 1.4,
+            imageRes = R.drawable.img_cuidador
+        ),
+        Service(
+            id = "3",
+            name = "Diego Reina",
+            category = "Cuidado de mascotas",
+            description = "Cuidado de mascotas",
+            rating = 4.7,
+            distanceKm = 3.1,
+            imageRes = R.drawable.img_cuidador
+        ),
+        Service(
+            id = "4",
+            name = "Dr. Carlos Ruiz",
+            category = "Veterinario a domicilio",
+            description = "Veterinario a domicilio",
+            rating = 4.9,
+            distanceKm = 2.1,
+            imageRes = R.drawable.img_cuidador
+        ),
+        Service(
+            id = "5",
+            name = "Pet Spa",
+            category = "Baño y peluquería",
+            description = "Baño y peluquería",
+            rating = 4.4,
+            distanceKm = 1.4,
+            imageRes = R.drawable.img_cuidador
+        ),
+        Service(
+            id = "6",
+            name = "Diego Reina",
+            category = "Cuidado de mascotas",
+            description = "Cuidado de mascotas",
+            rating = 4.7,
+            distanceKm = 3.1,
+            imageRes = R.drawable.img_cuidador
+        )
     )
 
     override fun getProducts(): List<Product> = listOf(
-        Product("1", "Premium Food", "Food", "$24.99", R.drawable.img_product_food),
-        Product("2", "Rubber Toy", "Toys", "$9.99", R.drawable.img_product_toy),
-        Product("3", "Comfort Bed", "Home", "$39.99", R.drawable.img_product_bed),
-        Product("4", "Daily Shampoo", "Care", "$12.50", R.drawable.img_product_shampoo),
-        Product("5", "Travel Bowl", "Accessories", "$8.49", R.drawable.img_product_bowl),
-        Product("6", "Soft Leash", "Accessories", "$15.00", R.drawable.img_product_leash)
+        Product("1", "Premium Food", "Food", "$24.99", R.drawable.img_comida),
+        Product("2", "Rubber Toy", "Toys", "$9.99", R.drawable.img_juguetes),
+        Product("3", "Comfort Bed", "Home", "$39.99", R.drawable.img_gym),
+        Product("4", "Travel Bowl", "Accessories", "$8.49", R.drawable.img_comida),
+        Product("5", "Soft Leash", "Accessories", "$15.00", R.drawable.img_correa)
     )
 
     override fun getPets(): List<Pet> = listOf(
@@ -87,4 +135,3 @@ object MockPetShopRepository : PetShopRepository {
         ChatMessage("4", "Yes, we can reserve Saturday at 10 AM for you.", false)
     )
 }
-
