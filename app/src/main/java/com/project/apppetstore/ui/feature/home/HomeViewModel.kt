@@ -10,7 +10,7 @@ import com.project.apppetstore.data.repository.PetShopRepository
 
 data class HomeUiState(
     val filters: List<String> = emptyList(),
-    val selectedFilter: String = "All",
+    val selectedFilter: String = "Todos",
     val services: List<Service> = emptyList(),
     val pets: List<Pet> = emptyList()
 )
@@ -22,7 +22,7 @@ class HomeViewModel(
 
     var uiState by androidx.compose.runtime.mutableStateOf(
         HomeUiState(
-            filters = listOf("All") + allServices.map { it.category }.distinct(),
+            filters = listOf("Todos") + allServices.map { it.category }.distinct(),
             services = allServices,
             pets = repository.getPets()
         )
@@ -32,7 +32,7 @@ class HomeViewModel(
     fun onFilterSelected(filter: String) {
         uiState = uiState.copy(
             selectedFilter = filter,
-            services = if (filter == "All") {
+            services = if (filter == "Todos") {
                 allServices
             } else {
                 allServices.filter { it.category == filter }

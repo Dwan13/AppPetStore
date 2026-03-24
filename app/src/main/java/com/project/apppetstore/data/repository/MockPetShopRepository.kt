@@ -66,11 +66,11 @@ object MockPetShopRepository : PetShopRepository {
     )
 
     override fun getProducts(): List<Product> = listOf(
-        Product("1", "Premium Food", "Food", "$24.99", R.drawable.img_comida),
-        Product("2", "Rubber Toy", "Toys", "$9.99", R.drawable.img_juguetes),
-        Product("3", "Comfort Bed", "Home", "$39.99", R.drawable.img_gym),
-        Product("4", "Travel Bowl", "Accessories", "$8.49", R.drawable.img_comida),
-        Product("5", "Soft Leash", "Accessories", "$15.00", R.drawable.img_correa)
+        Product("1", "Comida Premium", "Comida", "$24.99", R.drawable.img_comida),
+        Product("2", "Juguete de Goma", "Juguetes", "$9.99", R.drawable.img_juguetes),
+        Product("3", "Cama Cómoda", "Hogar", "$39.99", R.drawable.img_gym),
+        Product("4", "Tazón de Viaje", "Accesorios", "$8.49", R.drawable.img_comida),
+        Product("5", "Correa Suave", "Accesorios", "$15.00", R.drawable.img_correa)
     )
 
     override fun getPets(): List<Pet> = listOf(
@@ -129,9 +129,9 @@ object MockPetShopRepository : PetShopRepository {
     )
 
     override fun getInitialChat(): List<ChatMessage> = listOf(
-        ChatMessage("1", "Hi! I want to adopt a friendly dog.", true),
-        ChatMessage("2", "Great! We currently have Luna and Rocky available.", false),
-        ChatMessage("3", "Can I schedule a visit this weekend?", true),
-        ChatMessage("4", "Yes, we can reserve Saturday at 10 AM for you.", false)
+        ChatMessage("1", "¡Hola! Quiero adoptar un perro amigable.", true),
+        ChatMessage("2", "¡Genial! Actualmente tenemos disponibles a Luna y Rocky.", false),
+        ChatMessage("3", "¿Puedo agendar una visita este fin de semana?", true),
+        ChatMessage("4", "Sí, podemos reservar el sábado a las 10 AM para ti.", false)
     )
 }

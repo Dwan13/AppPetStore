@@ -1,14 +1,14 @@
 package com.project.apppetstore.ui.feature.home
 
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,10 +27,10 @@ fun HomeScreen(
     uiState: HomeUiState,
     modifier: Modifier = Modifier,
     onPetClick: ((petId: String) -> Unit)? = null,
-    onFilterSelected: (String) -> Unit = {} // nuevo parámetro
+    onFilterSelected: (String) -> Unit = {}
 ) {
 
-    androidx.compose.foundation.lazy.LazyColumn(
+    LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -43,7 +43,7 @@ fun HomeScreen(
         }
 
         item {
-            androidx.compose.foundation.layout.Box(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
@@ -61,7 +61,7 @@ fun HomeScreen(
             )
         }
         item {
-            androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(uiState.filters) { filter ->
                     val icon = when (filter) {
                         "Clinicas" -> painterResource(R.drawable.ic_stethoscope)
@@ -79,7 +79,7 @@ fun HomeScreen(
             }
         }
         
-        item { SectionTitle(title = "Servicios cercanos") }
+        item { SectionTitle(title = "Mascotas en adopción") }
         item {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(uiState.pets, key = { it.id }) { pet ->

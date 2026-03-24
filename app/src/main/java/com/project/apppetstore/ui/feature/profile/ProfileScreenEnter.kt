@@ -37,37 +37,8 @@ fun ProfileScreenEnter(
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         Spacer(modifier = Modifier.height(24.dp))
-        // Header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = userName.take(2).uppercase(),
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily(Font(R.font.roboto_bold)),
-                    fontSize = 16.sp
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = stringResource(R.string.app_name),
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily(Font(R.font.roboto_bold)),
-                fontSize = 18.sp
-            )
-        }
-        Spacer(modifier = Modifier.height(16.dp))
         // Card usuario
         Box(
             modifier = Modifier
@@ -108,7 +79,7 @@ fun ProfileScreenEnter(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         // Card mascotas
         Box(
             modifier = Modifier
@@ -158,7 +129,7 @@ fun ProfileScreenEnter(
                     }
                     // Botón Agregar mascota
                     SecondaryButton(
-                        onClick = { /* TODO: Acción agregar mascota */ },
+                        onClick = {},
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight() // Ocupa todo el alto disponible
@@ -171,7 +142,7 @@ fun ProfileScreenEnter(
                                 Icon(
                                     painter = painterResource(R.drawable.ic_plus),
                                     contentDescription = "Agregar",
-                                    tint = MaterialTheme.colorScheme.surface,
+                                    tint = MaterialTheme.colorScheme.background,
                                     modifier = Modifier.size(24.dp)
                                 )
                                 Text("Agregar", color = MaterialTheme.colorScheme.secondary, fontSize = 13.sp)
@@ -181,7 +152,7 @@ fun ProfileScreenEnter(
                 }
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         // Opciones
         Box(
             modifier = Modifier
@@ -204,7 +175,7 @@ fun ProfileScreenEnter(
                             Icon(
                                 painter = painterResource(R.drawable.ic_shopping_bag),
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSecondary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -212,14 +183,14 @@ fun ProfileScreenEnter(
                             Icon(
                                 painter = painterResource(R.drawable.ic_chevron_right),
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.surface,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
                     }
                 )
                 SecondaryButton(
-                    onClick = { /* TODO: Acción favoritos */ },
+                    onClick = { },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 2.dp),
@@ -231,7 +202,7 @@ fun ProfileScreenEnter(
                             Icon(
                                 painter = painterResource(R.drawable.ic_heart),
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSecondary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -239,14 +210,14 @@ fun ProfileScreenEnter(
                             Icon(
                                 painter = painterResource(R.drawable.ic_chevron_right),
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.surface,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
                     }
                 )
                 SecondaryButton(
-                    onClick = { /* TODO: Acción configuración */ },
+                    onClick = { },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 2.dp),
@@ -258,7 +229,7 @@ fun ProfileScreenEnter(
                             Icon(
                                 painter = painterResource(R.drawable.ic_settings),
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSecondary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -266,7 +237,7 @@ fun ProfileScreenEnter(
                             Icon(
                                 painter = painterResource(R.drawable.ic_chevron_right),
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.surface,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -274,7 +245,7 @@ fun ProfileScreenEnter(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         // Botón cerrar sesión
         SecondaryButton(
             text = "Cerrar sesión",

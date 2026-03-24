@@ -10,7 +10,7 @@ import com.project.apppetstore.data.repository.PetShopRepository
 
 data class ServicesUiState(
     val filters: List<String> = emptyList(),
-    val selectedFilter: String = "All",
+    val selectedFilter: String = "Todos",
     val services: List<Service> = emptyList()
 )
 
@@ -22,7 +22,7 @@ class ServicesViewModel(
 
     var uiState by mutableStateOf(
         ServicesUiState(
-            filters = listOf("All") + allServices.map { it.category }.distinct(),
+            filters = listOf("Todos") + allServices.map { it.category }.distinct(),
             services = allServices
         )
     )
@@ -31,7 +31,7 @@ class ServicesViewModel(
     fun onFilterSelected(filter: String) {
         uiState = uiState.copy(
             selectedFilter = filter,
-            services = if (filter == "All") {
+            services = if (filter == "Todos") {
                 allServices
             } else {
                 allServices.filter { it.category == filter }
