@@ -1,4 +1,4 @@
-package com.project.adopetshop.ui.components
+package com.project.apppetstore.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,9 +20,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.project.adopetshop.R
-import com.project.adopetshop.data.model.ChatMessage
+import com.project.apppetstore.R
+import com.project.apppetstore.data.model.ChatMessage
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun ChatSection(
@@ -35,8 +36,8 @@ fun ChatSection(
         modifier = Modifier
             .padding(horizontal = 12.dp)
             .shadow(2.dp, RoundedCornerShape(16.dp))
-            .background(Color(0xFFF7F7F7), RoundedCornerShape(16.dp))
-            .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.background, RoundedCornerShape(16.dp))
+            .border(1.dp, MaterialTheme.colorScheme.onSecondary, RoundedCornerShape(16.dp))
             .padding(14.dp)
     ) {
         Column {

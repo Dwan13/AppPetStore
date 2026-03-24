@@ -1,4 +1,4 @@
-package com.project.adopetshop.ui.components
+package com.project.apppetstore.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -7,12 +7,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.project.adopetshop.data.model.ChatMessage
+import com.project.apppetstore.data.model.ChatMessage
 
 @Composable
 fun ChatBubble(message: ChatMessage) {
@@ -25,9 +26,9 @@ fun ChatBubble(message: ChatMessage) {
             shape = RoundedCornerShape(16.dp),
             colors = androidx.compose.material3.CardDefaults.cardColors(
                 containerColor = if (message.isUser) {
-                    Color(0xFFDDE5D8) // usuario
+                    MaterialTheme.colorScheme.onPrimary
                 } else {
-                    Color(0xFFDCEBB5) // bot (verde claro)
+                    MaterialTheme.colorScheme.primaryContainer
                 }
             )
         ) {

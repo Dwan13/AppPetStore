@@ -1,4 +1,4 @@
-package com.project.adopetshop.ui.components
+package com.project.apppetstore.ui.components
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text

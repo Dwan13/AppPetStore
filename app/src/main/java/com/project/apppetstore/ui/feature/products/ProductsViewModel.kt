@@ -1,12 +1,12 @@
-package com.project.adopetshop.ui.feature.products
+package com.project.apppetstore.ui.feature.products
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.project.adopetshop.data.model.Product
-import com.project.adopetshop.data.repository.MockPetShopRepository
-import com.project.adopetshop.data.repository.PetShopRepository
+import com.project.apppetstore.data.model.Product
+import com.project.apppetstore.data.repository.MockPetShopRepository
+import com.project.apppetstore.data.repository.PetShopRepository
 
 data class ProductsUiState(
     val filters: List<String> = emptyList(),

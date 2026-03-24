@@ -1,4 +1,4 @@
-package com.project.adopetshop.ui.feature.adoption
+package com.project.apppetstore.ui.feature.adoption
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,10 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.project.adopetshop.data.model.ChatMessage
-import com.project.adopetshop.ui.components.ChatSection
-import com.project.adopetshop.ui.components.PetCard
-import com.project.adopetshop.ui.components.PrimaryButton
+import com.project.apppetstore.ui.components.ChatSection
+import com.project.apppetstore.ui.components.PetCard
 
 @Composable
 fun AdoptionScreen(

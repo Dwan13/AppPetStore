@@ -1,11 +1,10 @@
-package com.project.adopetshop.ui.feature.adoption
+package com.project.apppetstore.ui.feature.adoption
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,12 +27,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.project.adopetshop.R
-import com.project.adopetshop.data.model.ChatMessage
-import com.project.adopetshop.data.model.Pet
-import com.project.adopetshop.ui.components.PrimaryButton
+import com.project.apppetstore.R
+import com.project.apppetstore.data.model.ChatMessage
+import com.project.apppetstore.data.model.Pet
+import com.project.apppetstore.ui.components.PrimaryButton
 import kotlinx.coroutines.delay
-import com.project.adopetshop.ui.components.ChatSection
+import com.project.apppetstore.ui.components.ChatSection
 
 @Composable
 fun PetDetailScreen(
@@ -52,20 +50,17 @@ fun PetDetailScreen(
     modifier: Modifier = Modifier
 ) {
 
-    var showChat by remember { mutableStateOf(true) }
     val scrollState = rememberScrollState()
-    // Scroll automático al chat informativo al entrar
     LaunchedEffect(Unit) {
-        delay(350) // Espera breve para que se componga la UI
+        delay(350)
         scrollState.animateScrollTo(scrollState.maxValue)
     }
     Box(modifier = modifier.fillMaxSize().background(Color.White)) {
         Column(
             modifier = Modifier
                 .verticalScroll(scrollState)
-                .padding(bottom = 80.dp) // Deja espacio para el botón fijo
+                .padding(bottom = 80.dp)
         ) {
-            // Imagen superior con botones
             Box(modifier = Modifier.height(260.dp).fillMaxWidth()) {
                 when {
                     pet.imageUrl != null -> {
@@ -80,7 +75,6 @@ fun PetDetailScreen(
                         )
                     }
                     pet.imageRes != null -> {
-                        // Si hay recurso local, usa Image
                         Image(
                             painter = painterResource(pet.imageRes),
                             contentDescription = pet.name,
@@ -99,35 +93,42 @@ fun PetDetailScreen(
                         }
                     }
                 }
-                // Botón back (más visible y por encima)
-                Icon(
-                    painter = painterResource(R.drawable.ic_move_left),
-                    contentDescription = "Volver",
+                Box(
                     modifier = Modifier
                         .padding(16.dp)
-                        .size(36.dp)
+                        .size(32.dp)
                         .clip(CircleShape)
                         .background(Color.White)
                         .clickable { onBack() },
-                    tint = Color.Black
-                )
-                // Botón heart
-                Icon(
-                    painter = painterResource(R.drawable.ic_heart),
-                    contentDescription = "Favorito",
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_move_left),
+                        contentDescription = "Volver",
+                        modifier = Modifier.size(18.dp),
+                        tint = Color.Black
+                    )
+                }
+                Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(16.dp)
-                        .size(40.dp)
+                        .size(34.dp)
                         .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.85f), CircleShape)
                         .border(1.dp, Color(0xFFE5E7EB), CircleShape)
                         .clickable { onToggleFavorite() },
-                    tint = if (isFavorite) Color(0xFFFF5A5F) else Color(0xFFB0B0B0)
-                )
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_heart),
+                        contentDescription = "Favorito",
+                        modifier = Modifier.size(18.dp),
+                        tint = if (isFavorite) Color(0xFFFF5A5F) else Color(0xFFB0B0B0)
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(12.dp))
-            // Card de datos principales
             Box(
                 modifier = Modifier
                     .padding(horizontal = 12.dp)
@@ -175,7 +176,6 @@ fun PetDetailScreen(
             )
             Spacer(modifier = Modifier.height(24.dp))
         }
-        // Botón adoptar fijo en la parte inferior
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)

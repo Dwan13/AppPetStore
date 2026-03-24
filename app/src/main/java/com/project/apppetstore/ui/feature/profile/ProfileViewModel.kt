@@ -1,10 +1,10 @@
-package com.project.adopetshop.ui.feature.profile
+package com.project.apppetstore.ui.feature.profile
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.project.adopetshop.data.model.UserProfile
+import com.project.apppetstore.data.model.UserProfile
 
 data class ProfileUiState(
     val isLoggedIn: Boolean = false,

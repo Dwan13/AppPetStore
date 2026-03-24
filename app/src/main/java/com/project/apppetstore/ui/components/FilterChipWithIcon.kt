@@ -1,4 +1,4 @@
-package com.project.adopetshop.ui.components
+package com.project.apppetstore.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.project.adopetshop.R
+import com.project.apppetstore.R
 
 @Composable
 fun FilterChipWithIcon(

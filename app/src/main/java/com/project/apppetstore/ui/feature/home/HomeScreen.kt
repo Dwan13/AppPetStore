@@ -1,4 +1,4 @@
-package com.project.adopetshop.ui.feature.home
+package com.project.apppetstore.ui.feature.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,12 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.background
-import com.project.adopetshop.R
-import com.project.adopetshop.ui.components.FilterChipWithIcon
-import com.project.adopetshop.ui.components.PetCard
-import com.project.adopetshop.ui.components.QuickActionButton
-import com.project.adopetshop.ui.components.SectionTitle
-import com.project.adopetshop.ui.components.ServiceCard
+import com.project.apppetstore.R
+import com.project.apppetstore.ui.components.FilterChipWithIcon
+import com.project.apppetstore.ui.components.PetCard
+import com.project.apppetstore.ui.components.SectionTitle
+import com.project.apppetstore.ui.components.ServiceCard
 
 @Composable
 fun HomeScreen(
@@ -30,7 +29,6 @@ fun HomeScreen(
     onPetClick: ((petId: String) -> Unit)? = null,
     onFilterSelected: (String) -> Unit = {} // nuevo parámetro
 ) {
-    val carouselState = rememberLazyListState()
 
     androidx.compose.foundation.lazy.LazyColumn(
         modifier = modifier,
@@ -39,7 +37,7 @@ fun HomeScreen(
     ) {
         item {
             Text(
-                text = "Welcome to AdoPetShop",
+                text = "Servicios cercanos",
                 style = MaterialTheme.typography.headlineSmall
             )
         }
@@ -52,8 +50,8 @@ fun HomeScreen(
                     .background(
                         brush = androidx.compose.ui.graphics.Brush.linearGradient(
                             colors = listOf(
-                                androidx.compose.ui.graphics.Color(0xFF5C9639),
-                                androidx.compose.ui.graphics.Color(0xFF9EDC7A)
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.primaryContainer
                             ),
                             start = androidx.compose.ui.geometry.Offset(0f, 0f),
                             end = androidx.compose.ui.geometry.Offset(400f, 400f)
@@ -81,7 +79,7 @@ fun HomeScreen(
             }
         }
         
-        item { SectionTitle(title = "Pets for Adoption") }
+        item { SectionTitle(title = "Servicios cercanos") }
         item {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(uiState.pets, key = { it.id }) { pet ->
@@ -95,7 +93,7 @@ fun HomeScreen(
             }
         }
         
-        item { SectionTitle(title = "Popular Services") }
+        item { SectionTitle(title = "Servicios a domicilio") }
         items(uiState.services, key = { it.id }) { service ->
             ServiceCard(
                 service = service,

@@ -1,4 +1,4 @@
-package com.project.adopetshop.ui.feature.services
+package com.project.apppetstore.ui.feature.services
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,7 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.project.adopetshop.ui.components.ServiceCard
+import com.project.apppetstore.ui.components.ServiceCard
 
 @Composable
 fun ServicesScreen(

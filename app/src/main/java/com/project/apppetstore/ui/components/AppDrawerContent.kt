@@ -1,4 +1,4 @@
-package com.project.adopetshop.ui.components
+package com.project.apppetstore.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
@@ -7,15 +7,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.project.adopetshop.navigation.AppDestination
-import com.project.adopetshop.navigation.BottomDestinations
+import com.project.apppetstore.navigation.AppDestination
+import com.project.apppetstore.navigation.BottomDestinations
 
 @Composable
 fun AppDrawerContent(
@@ -31,13 +34,13 @@ fun AppDrawerContent(
                 .fillMaxWidth()
                 .height(88.dp)
                 .background(
-                    brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                    brush = Brush.horizontalGradient(
                         colors = listOf(
-                            androidx.compose.ui.graphics.Color(0xFF5C9639),
-                            androidx.compose.ui.graphics.Color(0xFF7EBB56)
+                            Color(0xFF5C9639),
+                            Color(0xFF7EBB56)
                         )
                     ),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp)
                 )
         )
         Text(

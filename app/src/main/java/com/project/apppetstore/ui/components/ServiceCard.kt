@@ -1,4 +1,4 @@
-package com.project.adopetshop.ui.components
+package com.project.apppetstore.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -15,10 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.project.adopetshop.data.model.Service
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Place
-import com.project.adopetshop.R
+import com.project.apppetstore.data.model.Service
+import com.project.apppetstore.R
 
 @Composable
 fun ServiceCard(

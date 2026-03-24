@@ -1,4 +1,4 @@
-package com.project.adopetshop.ui.feature.products
+package com.project.apppetstore.ui.feature.products
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.project.adopetshop.ui.components.ProductCard
+import com.project.apppetstore.ui.components.ProductCard
 
 @Composable
 fun ProductsScreen(

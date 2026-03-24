@@ -1,4 +1,4 @@
-package com.project.adopetshop.ui.feature.profile
+package com.project.apppetstore.ui.feature.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,8 +20,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.project.adopetshop.R
-import com.project.adopetshop.ui.components.SecondaryButton
+import com.project.apppetstore.R
+import com.project.apppetstore.ui.components.SecondaryButton
 
 @Composable
 fun ProfileScreenEnter(
@@ -46,7 +47,7 @@ fun ProfileScreenEnter(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF5C9639)),
+                    .background(MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -60,7 +61,7 @@ fun ProfileScreenEnter(
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = stringResource(R.string.app_name),
-                color = Color(0xFF5C9639),
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily(Font(R.font.roboto_bold)),
                 fontSize = 18.sp
@@ -72,7 +73,7 @@ fun ProfileScreenEnter(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.White, shape = RoundedCornerShape(16.dp))
-                .border(1.dp, Color(0xFFE5E7EB), shape = RoundedCornerShape(16.dp))
+                .border(1.dp, MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(16.dp))
                 .padding(16.dp)
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -80,7 +81,7 @@ fun ProfileScreenEnter(
                     Icon(
                         painter = painterResource(R.drawable.ic_user_round),
                         contentDescription = null,
-                        tint = Color(0xFF5C9639),
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(36.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -92,7 +93,7 @@ fun ProfileScreenEnter(
                         )
                         Text(
                             text = userEmail,
-                            color = Color(0xFF6B7280),
+                            color = MaterialTheme.colorScheme.secondary,
                             fontSize = 14.sp
                         )
                     }
@@ -113,7 +114,11 @@ fun ProfileScreenEnter(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.White, shape = RoundedCornerShape(16.dp))
-                .border(1.dp, Color(0xFFE5E7EB), shape = RoundedCornerShape(16.dp))
+                .border(
+                    1.dp,
+                    MaterialTheme.colorScheme.onSecondary,
+                    shape = RoundedCornerShape(16.dp)
+                )
                 .padding(16.dp)
         ) {
             Column {
@@ -133,7 +138,10 @@ fun ProfileScreenEnter(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight() // Ocupa todo el alto disponible
-                            .background(Color(0xFFF3FCD6), shape = RoundedCornerShape(12.dp))
+                            .background(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                shape = RoundedCornerShape(12.dp)
+                            )
                             .padding(12.dp)
                     ) {
                         Column(horizontalAlignment = Alignment.Start) {
@@ -141,11 +149,11 @@ fun ProfileScreenEnter(
                                 modifier = Modifier
                                     .size(28.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFF5C9639))
+                                    .background(MaterialTheme.colorScheme.primary)
                             ) {}
                             Spacer(modifier = Modifier.height(4.dp))
                             Text("Bobby", fontWeight = FontWeight.Bold)
-                            Text("Perro, 3 años", color = Color(0xFF6B7280), fontSize = 13.sp)
+                            Text("Perro, 3 años", color = MaterialTheme.colorScheme.secondary, fontSize = 13.sp)
                         }
                     }
                     // Botón Agregar mascota
@@ -163,10 +171,10 @@ fun ProfileScreenEnter(
                                 Icon(
                                     painter = painterResource(R.drawable.ic_plus),
                                     contentDescription = "Agregar",
-                                    tint = Color(0xFFB0B0B0),
+                                    tint = MaterialTheme.colorScheme.surface,
                                     modifier = Modifier.size(24.dp)
                                 )
-                                Text("Agregar", color = Color(0xFF6B7280), fontSize = 13.sp)
+                                Text("Agregar", color = MaterialTheme.colorScheme.secondary, fontSize = 13.sp)
                             }
                         }
                     )
@@ -179,13 +187,15 @@ fun ProfileScreenEnter(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.White, shape = RoundedCornerShape(16.dp))
-                .border(1.dp, Color(0xFFE5E7EB), shape = RoundedCornerShape(16.dp))
+                .border(1.dp, MaterialTheme.colorScheme.onPrimary, shape = RoundedCornerShape(16.dp))
                 .padding(8.dp)
         ) {
             Column {
                 SecondaryButton(
-                    onClick = { /* TODO: Acción mis pedidos */ },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                    onClick = { },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp),
                     content = {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -194,7 +204,7 @@ fun ProfileScreenEnter(
                             Icon(
                                 painter = painterResource(R.drawable.ic_shopping_bag),
                                 contentDescription = null,
-                                tint = Color(0xFF6B7280),
+                                tint = MaterialTheme.colorScheme.onSecondary,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -202,7 +212,7 @@ fun ProfileScreenEnter(
                             Icon(
                                 painter = painterResource(R.drawable.ic_chevron_right),
                                 contentDescription = null,
-                                tint = Color(0xFFB0B0B0),
+                                tint = MaterialTheme.colorScheme.surface,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -210,7 +220,9 @@ fun ProfileScreenEnter(
                 )
                 SecondaryButton(
                     onClick = { /* TODO: Acción favoritos */ },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp),
                     content = {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -219,7 +231,7 @@ fun ProfileScreenEnter(
                             Icon(
                                 painter = painterResource(R.drawable.ic_heart),
                                 contentDescription = null,
-                                tint = Color(0xFF6B7280),
+                                tint = MaterialTheme.colorScheme.onSecondary,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -227,7 +239,7 @@ fun ProfileScreenEnter(
                             Icon(
                                 painter = painterResource(R.drawable.ic_chevron_right),
                                 contentDescription = null,
-                                tint = Color(0xFFB0B0B0),
+                                tint = MaterialTheme.colorScheme.surface,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -235,7 +247,9 @@ fun ProfileScreenEnter(
                 )
                 SecondaryButton(
                     onClick = { /* TODO: Acción configuración */ },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp),
                     content = {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -244,7 +258,7 @@ fun ProfileScreenEnter(
                             Icon(
                                 painter = painterResource(R.drawable.ic_settings),
                                 contentDescription = null,
-                                tint = Color(0xFF6B7280),
+                                tint = MaterialTheme.colorScheme.onSecondary,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -252,7 +266,7 @@ fun ProfileScreenEnter(
                             Icon(
                                 painter = painterResource(R.drawable.ic_chevron_right),
                                 contentDescription = null,
-                                tint = Color(0xFFB0B0B0),
+                                tint = MaterialTheme.colorScheme.surface,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -268,16 +282,16 @@ fun ProfileScreenEnter(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.White, shape = RoundedCornerShape(8.dp))
-                .border(1.dp, Color(0xFFFF5A5F), shape = RoundedCornerShape(8.dp)),
+                .border(1.dp, MaterialTheme.colorScheme.error, shape = RoundedCornerShape(8.dp)),
             content = {
                 Icon(
                     painter = painterResource(R.drawable.ic_square_arrow_right_exit),
                     contentDescription = null,
-                    tint = Color(0xFFFF5A5F),
+                    tint = MaterialTheme.colorScheme.error,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Cerrar sesión", color = Color(0xFFFF5A5F))
+                Text("Cerrar sesión", color = MaterialTheme.colorScheme.error)
             }
         )
     }

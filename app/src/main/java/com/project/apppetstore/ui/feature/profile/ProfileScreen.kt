@@ -1,9 +1,10 @@
-package com.project.adopetshop.ui.feature.profile
+package com.project.apppetstore.ui.feature.profile
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,8 +20,8 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.project.adopetshop.R
-import com.project.adopetshop.ui.components.PrimaryButton
+import com.project.apppetstore.R
+import com.project.apppetstore.ui.components.PrimaryButton
 
 @Composable
 fun ProfileScreen(
@@ -33,39 +34,40 @@ fun ProfileScreen(
             .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         // Icono usuario
         Box(
             modifier = Modifier
                 .size(80.dp)
                 .clip(CircleShape)
-                .background(Color(0xFFF3F4F6)),
+                .background(MaterialTheme.colorScheme.secondary),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 painter = painterResource(R.drawable.ic_user_round),
                 contentDescription = null,
-                tint = Color(0xFFB0B0B0),
+                tint = MaterialTheme.colorScheme.surface,
                 modifier = Modifier.size(48.dp)
             )
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = stringResource(R.string.profile_create_title),
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily(Font(R.font.roboto_bold)),
             fontSize = 20.sp
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = stringResource(R.string.profile_create_desc),
-            color = Color(0xFF6B7280),
+            color = MaterialTheme.colorScheme.secondary,
             fontFamily = FontFamily(Font(R.font.roboto_regular)),
             fontSize = 15.sp,
             modifier = Modifier.padding(horizontal = 16.dp),
-            lineHeight = 20.sp
+            lineHeight = 20.sp,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         PrimaryButton(
             text = stringResource(R.string.profile_login),
             onClick = {
@@ -82,16 +84,17 @@ fun ProfileScreen(
             contentDescription = null,
             modifier = Modifier
                 .size(200.dp)
-                .clip(MaterialTheme.shapes.medium)
+                .clip(RoundedCornerShape(16.dp))
         )
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = stringResource(R.string.profile_welcome),
-            color = Color(0xFF444444),
-            fontFamily = FontFamily(Font(R.font.inria_sans_regular)),
-            fontSize = 13.sp,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            fontFamily = FontFamily(Font(R.font.inria_sans_bold_italic)),
+            fontSize = 12.sp,
             modifier = Modifier.padding(horizontal = 16.dp),
-            lineHeight = 18.sp
+            lineHeight = 18.sp,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
     }
 }

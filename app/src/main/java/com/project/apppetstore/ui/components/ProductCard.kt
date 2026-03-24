@@ -1,4 +1,4 @@
-package com.project.adopetshop.ui.components
+package com.project.apppetstore.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -15,9 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
-import com.project.adopetshop.data.model.Product
+import com.project.apppetstore.data.model.Product
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.layout.ContentScale
 
 @Composable
 fun ProductCard(
@@ -33,7 +35,7 @@ fun ProductCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp),
-                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                contentScale = ContentScale.Crop
             )
         } else {
             Box(
@@ -41,8 +43,8 @@ fun ProductCard(
                     .fillMaxWidth()
                     .height(120.dp)
                     .background(
-                        color = Color(0xFFF5E1A4),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+                        color = MaterialTheme.colorScheme.onBackground,
+                        shape = RoundedCornerShape(16.dp)
                     )
             )
         }

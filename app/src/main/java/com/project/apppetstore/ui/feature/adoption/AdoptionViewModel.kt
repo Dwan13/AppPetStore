@@ -1,14 +1,14 @@
-package com.project.adopetshop.ui.feature.adoption
+package com.project.apppetstore.ui.feature.adoption
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.project.adopetshop.data.model.ChatMessage
-import com.project.adopetshop.data.model.Pet
-import com.project.adopetshop.data.repository.MockPetShopRepository
-import com.project.adopetshop.data.repository.PetShopRepository
+import com.project.apppetstore.data.model.ChatMessage
+import com.project.apppetstore.data.model.Pet
+import com.project.apppetstore.data.repository.MockPetShopRepository
+import com.project.apppetstore.data.repository.PetShopRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
