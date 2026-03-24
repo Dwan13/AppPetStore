@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">AppPetStore</string>
+    <string name="nav_home">Inicio</string>
+    <string name="nav_services">Servicios</string>
+    <string name="nav_products">Productos</string>
+    <string name="nav_adoption">Adopción</string>
+    <string name="nav_profile">Perfil</string>
+    <string name="profile_create_title">Crea tu perfil</string>
+    <string name="profile_create_desc">Inicia sesión para acceder a tu perfil y gestionar tus pedidos</string>
+    <string name="profile_login">Iniciar Sesión</string>
+    <string name="profile_welcome">Tu mascota merece todo lo mejor de ti y aca lo tienes al alcance de un click</string>
+    <string name="profile_head_title">AppPetStore</string>
+    <string name="login_title">Log in</string>
+    <string name="login_full_name">Full name</string>
+    <string name="login_email">Email</string>
+    <string name="login_continue">Continue</string>
+    <string name="login_or_continue_with">o continuar con</string>
+    <string name="login_continue_with_google">Continuar con Google</string>
+    <string name="login_continue_with_facebook">Continuar con Facebook</string>
+    <string name="login_no_account">¿No tienes una cuenta?</string>
+    <string name="login_register">Registrarse</string>
+</resources>
