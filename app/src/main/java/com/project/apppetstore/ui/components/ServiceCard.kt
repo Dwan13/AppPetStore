@@ -21,6 +21,7 @@ import com.project.apppetstore.R
 @Composable
 fun ServiceCard(
     service: Service,
+    onScheduleClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -64,7 +65,7 @@ fun ServiceCard(
                 }
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { }, modifier = Modifier.height(32.dp)) {
+            Button(onClick = onScheduleClick, modifier = Modifier.height(32.dp)) {
                 Text("Agendar", fontSize = 12.sp)
             }
         }

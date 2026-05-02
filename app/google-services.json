@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "873866275765",
+    "project_id": "react-test-879a2",
+    "storage_bucket": "react-test-879a2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:873866275765:android:a4dc079c586e41cd6607fc",
+        "android_client_info": {
+          "package_name": "com.project.apppetstore"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDG5c0VA8qon4d0JlfdfG_sPTu5QOK8wCs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

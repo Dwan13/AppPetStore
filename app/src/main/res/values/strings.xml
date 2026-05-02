@@ -2,6 +2,7 @@
     <string name="app_name">AppPetStore</string>
     <string name="nav_home">Inicio</string>
     <string name="nav_services">Servicios</string>
+    <string name="nav_map">Mapa</string>
     <string name="nav_products">Productos</string>
     <string name="nav_adoption">Adopción</string>
     <string name="nav_profile">Perfil</string>

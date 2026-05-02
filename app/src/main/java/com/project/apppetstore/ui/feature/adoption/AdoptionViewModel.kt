@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.project.apppetstore.data.model.AttachmentType
+import com.project.apppetstore.data.model.ChatAttachment
 import com.project.apppetstore.data.model.ChatMessage
 import com.project.apppetstore.data.model.Pet
 import com.project.apppetstore.data.repository.MockPetShopRepository
@@ -15,7 +17,8 @@ import kotlinx.coroutines.launch
 data class AdoptionUiState(
     val pets: List<Pet> = emptyList(),
     val messages: List<ChatMessage> = emptyList(),
-    val currentInput: String = ""
+    val currentInput: String = "",
+    val pendingAttachment: ChatAttachment? = null
 )
 
 class AdoptionViewModel(
@@ -34,18 +37,31 @@ class AdoptionViewModel(
         uiState = uiState.copy(currentInput = input)
     }
 
+    fun attachMedia(type: AttachmentType, uri: String) {
+        uiState = uiState.copy(
+            pendingAttachment = ChatAttachment(type = type, uri = uri)
+        )
+    }
+
+    fun removePendingAttachment() {
+        uiState = uiState.copy(pendingAttachment = null)
+    }
+
     fun sendMessage() {
         val message = uiState.currentInput.trim()
-        if (message.isEmpty()) return
+        val attachment = uiState.pendingAttachment
+        if (message.isEmpty() && attachment == null) return
 
         val newMessage = ChatMessage(
             id = System.currentTimeMillis().toString(),
-            message = message,
-            isUser = true
+            message = if (message.isNotEmpty()) message else "Adjunto",
+            isUser = true,
+            attachment = attachment
         )
         uiState = uiState.copy(
-            currentInput = "",
-            messages = uiState.messages + newMessage
+             currentInput = "",
+            pendingAttachment = null,
+             messages = uiState.messages + newMessage
         )
         // Simular respuesta automática
         viewModelScope.launch {

@@ -40,6 +40,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -54,12 +57,16 @@ import com.project.apppetstore.ui.feature.adoption.AdoptionScreen
 import com.project.apppetstore.ui.feature.adoption.AdoptionViewModel
 import com.project.apppetstore.ui.feature.home.HomeScreen
 import com.project.apppetstore.ui.feature.home.HomeViewModel
+import com.project.apppetstore.ui.feature.delivery.DeliveryScheduleScreen
+import com.project.apppetstore.ui.feature.map.MapScreen
 import com.project.apppetstore.ui.feature.products.ProductsScreen
 import com.project.apppetstore.ui.feature.products.ProductsViewModel
 import com.project.apppetstore.ui.feature.profile.LoginBottomSheet
 import com.project.apppetstore.ui.feature.profile.ProfileScreen
 import com.project.apppetstore.ui.feature.profile.ProfileScreenEnter
+import com.project.apppetstore.ui.feature.profile.ProfilePhotoCameraDialog
 import com.project.apppetstore.ui.feature.profile.ProfileViewModel
+import com.project.apppetstore.ui.feature.profile.RegisterScreen
 import com.project.apppetstore.ui.feature.services.ServicesScreen
 import com.project.apppetstore.ui.feature.services.ServicesViewModel
 
@@ -77,6 +84,15 @@ fun AppPetShopApp() {
 
     val profileViewModel: ProfileViewModel = viewModel()
     var showLoginSheet by rememberSaveable { mutableStateOf(false) }
+    var showProfilePhotoCamera by rememberSaveable { mutableStateOf(false) }
+    var showPetPhotoCamera by rememberSaveable { mutableStateOf(false) }
+
+    val petImagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            uri?.let { profileViewModel.updatePetPhoto(it.toString()) }
+        }
+    )
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -184,6 +200,14 @@ fun AppPetShopApp() {
                     val viewModel: HomeViewModel = viewModel()
                     HomeScreen(
                         uiState = viewModel.uiState,
+                        onScheduleService = { service ->
+                            navController.navigate(
+                                AppDestination.DeliverySchedule.createRoute(
+                                    serviceId = service.id,
+                                    serviceCategory = service.category
+                                )
+                            )
+                        },
                         onPetClick = { petId ->
                             navController.navigate("adoption?petId=$petId") {
                                 popUpTo(AppDestination.Home.route) { inclusive = false }
@@ -193,11 +217,70 @@ fun AppPetShopApp() {
                         onFilterSelected = viewModel::onFilterSelected
                     )
                 }
+                composable(
+                    route = AppDestination.DeliverySchedule.route,
+                    arguments = listOf(
+                        navArgument("serviceId") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        },
+                        navArgument("serviceCategory") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    )
+                ) { backStackEntry ->
+                    val serviceId = backStackEntry.arguments?.getString("serviceId")
+                    val serviceCategory = backStackEntry.arguments?.getString("serviceCategory")
+                    DeliveryScheduleScreen(
+                        serviceId = serviceId,
+                        serviceCategory = serviceCategory,
+                        onConfirm = {
+                            navController.navigate(
+                                AppDestination.Map.createRoute(
+                                    deliveryRequested = true,
+                                    serviceCategory = serviceCategory
+                                )
+                            )
+                        }
+                    )
+                }
+                composable(
+                    route = AppDestination.Map.route,
+                    arguments = listOf(
+                        navArgument("deliveryRequested") {
+                            type = NavType.BoolType
+                            defaultValue = false
+                        },
+                        navArgument("serviceCategory") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    )
+                ) { backStackEntry ->
+                    val deliveryRequested = backStackEntry.arguments?.getBoolean("deliveryRequested") ?: false
+                    val serviceCategory = backStackEntry.arguments?.getString("serviceCategory")
+                    MapScreen(
+                        deliveryRequested = deliveryRequested,
+                        serviceCategory = serviceCategory
+                    )
+                }
                 composable(AppDestination.Services.route) {
                     val viewModel: ServicesViewModel = viewModel()
                     ServicesScreen(
                         uiState = viewModel.uiState,
-                        onFilterSelected = viewModel::onFilterSelected
+                        onFilterSelected = viewModel::onFilterSelected,
+                        onScheduleService = { service ->
+                            navController.navigate(
+                                AppDestination.DeliverySchedule.createRoute(
+                                    serviceId = service.id,
+                                    serviceCategory = service.category
+                                )
+                            )
+                        }
                     )
                 }
                 composable(AppDestination.Products.route) {
@@ -217,6 +300,8 @@ fun AppPetShopApp() {
                         uiState = viewModel.uiState,
                         onInputChange = viewModel::onInputChange,
                         onSendMessage = viewModel::sendMessage,
+                        onAttachMedia = viewModel::attachMedia,
+                        onRemovePendingAttachment = viewModel::removePendingAttachment,
                         selectedPetId = petId,
                         onBack = {
                             navController.popBackStack()
@@ -229,7 +314,20 @@ fun AppPetShopApp() {
                         ProfileScreenEnter(
                             userName = user.fullName,
                             userEmail = user.email,
-                            onEditProfile = { /* TODO: Acción editar perfil */ },
+                            profilePhotoUri = user.profilePhotoUri,
+                            petName = user.petProfile.name,
+                            petSpecies = user.petProfile.species,
+                            petAge = user.petProfile.age,
+                            petPhotoUri = user.petProfile.photoUri,
+                            petTraits = user.petProfile.traits,
+                            onEditProfile = { showProfilePhotoCamera = true },
+                            onTakePetPhoto = { showPetPhotoCamera = true },
+                            onPickPetPhoto = {
+                                petImagePickerLauncher.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            },
+                            onSavePetCharacteristics = profileViewModel::updatePetCharacteristics,
                             onLogout = profileViewModel::logout
                         )
                     } else {
@@ -237,6 +335,22 @@ fun AppPetShopApp() {
                             onOpenLoginSheet = { showLoginSheet = true },
                         )
                     }
+                }
+
+                composable(AppDestination.Register.route) {
+                    RegisterScreen(
+                        onRegister = { fullName, email ->
+                            profileViewModel.register(fullName, email)
+                            navController.navigate(AppDestination.Profile.route) {
+                                popUpTo(AppDestination.Register.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        },
+                        onBackToLogin = {
+                            navController.popBackStack()
+                            showLoginSheet = true
+                        }
+                    )
                 }
             }
 
@@ -246,6 +360,28 @@ fun AppPetShopApp() {
                     onLogin = { fullName, email ->
                         profileViewModel.login(fullName, email)
                         showLoginSheet = false
+                    },
+                    onRegisterClick = {
+                        showLoginSheet = false
+                        navController.navigate(AppDestination.Register.route)
+                    }
+                )
+            }
+
+            if (showProfilePhotoCamera && profileViewModel.uiState.user != null) {
+                ProfilePhotoCameraDialog(
+                    onDismiss = { showProfilePhotoCamera = false },
+                    onPhotoTaken = { photoUri ->
+                        profileViewModel.updateProfilePhoto(photoUri.toString())
+                    }
+                )
+            }
+
+            if (showPetPhotoCamera && profileViewModel.uiState.user != null) {
+                ProfilePhotoCameraDialog(
+                    onDismiss = { showPetPhotoCamera = false },
+                    onPhotoTaken = { photoUri ->
+                        profileViewModel.updatePetPhoto(photoUri.toString())
                     }
                 )
             }

@@ -12,12 +12,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.project.apppetstore.data.model.Service
 import com.project.apppetstore.ui.components.ServiceCard
 
 @Composable
 fun ServicesScreen(
     uiState: ServicesUiState,
     onFilterSelected: (String) -> Unit,
+    onScheduleService: (Service) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -44,6 +46,7 @@ fun ServicesScreen(
         items(uiState.services, key = { it.id }) { service ->
             ServiceCard(
                 service = service,
+                onScheduleClick = { onScheduleService(service) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 4.dp)
@@ -51,4 +54,3 @@ fun ServicesScreen(
         }
     }
 }
-
