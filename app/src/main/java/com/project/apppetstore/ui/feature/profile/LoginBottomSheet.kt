@@ -16,7 +16,8 @@ import com.project.apppetstore.ui.components.SecondaryButton
 @Composable
 fun LoginBottomSheet(
     onDismiss: () -> Unit,
-    onLogin: (String, String) -> Unit
+    onLogin: (String, String) -> Unit,
+    onRegisterClick: () -> Unit
 ) {
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -102,7 +103,7 @@ fun LoginBottomSheet(
                     Text(stringResource(R.string.login_no_account))
                     Spacer(modifier = Modifier.width(4.dp))
                     TextButton(
-                        onClick = { },
+                        onClick = onRegisterClick,
                         contentPadding = PaddingValues(0.dp)
                     ) {
                         Text(stringResource(R.string.login_register))

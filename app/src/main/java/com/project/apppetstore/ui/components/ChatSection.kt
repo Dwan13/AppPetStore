@@ -5,9 +5,16 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -21,17 +28,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.project.apppetstore.R
+import com.project.apppetstore.data.model.AttachmentType
+import com.project.apppetstore.data.model.ChatAttachment
 import com.project.apppetstore.data.model.ChatMessage
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun ChatSection(
     messages: List<ChatMessage>,
     currentInput: String,
+    pendingAttachment: ChatAttachment?,
     onInputChange: (String) -> Unit,
-    onSendMessage: () -> Unit
+    onSendMessage: () -> Unit,
+    onRemovePendingAttachment: () -> Unit,
+    onTakePhoto: () -> Unit,
+    onPickImage: () -> Unit,
+    onRecordVideo: () -> Unit,
+    onPickVideo: () -> Unit,
+    onRecordAudio: () -> Unit,
+    onPickAudio: () -> Unit
 ) {
+    var showAttachMenu by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .padding(horizontal = 12.dp)
@@ -41,7 +58,6 @@ fun ChatSection(
             .padding(14.dp)
     ) {
         Column {
-
             Text(
                 "Chat informativo",
                 fontWeight = FontWeight.Medium,
@@ -59,12 +75,105 @@ fun ChatSection(
                 }
             }
 
+            pendingAttachment?.let { attachment ->
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier
+                        .background(
+                            MaterialTheme.colorScheme.surfaceVariant,
+                            RoundedCornerShape(12.dp)
+                        )
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = when (attachment.type) {
+                            AttachmentType.IMAGE -> "Imagen lista para enviar"
+                            AttachmentType.VIDEO -> "Video listo para enviar"
+                            AttachmentType.AUDIO -> "Audio listo para enviar"
+                        },
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                    Icon(
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = "Quitar adjunto",
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clickable { onRemovePendingAttachment() }
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(10.dp))
 
-            // INPUT + ICONO
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Box {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .clickable { showAttachMenu = true },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = "Adjuntar",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showAttachMenu,
+                        onDismissRequest = { showAttachMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Tomar foto") },
+                            onClick = {
+                                showAttachMenu = false
+                                onTakePhoto()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Seleccionar imagen") },
+                            onClick = {
+                                showAttachMenu = false
+                                onPickImage()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Grabar video") },
+                            onClick = {
+                                showAttachMenu = false
+                                onRecordVideo()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Seleccionar video") },
+                            onClick = {
+                                showAttachMenu = false
+                                onPickVideo()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Grabar audio") },
+                            onClick = {
+                                showAttachMenu = false
+                                onRecordAudio()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Seleccionar audio") },
+                            onClick = {
+                                showAttachMenu = false
+                                onPickAudio()
+                            }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
 
                 OutlinedTextField(
                     value = currentInput,

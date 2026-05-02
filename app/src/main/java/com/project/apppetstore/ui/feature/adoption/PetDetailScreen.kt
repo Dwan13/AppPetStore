@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.project.apppetstore.R
 import com.project.apppetstore.data.model.ChatMessage
+import com.project.apppetstore.data.model.ChatAttachment
 import com.project.apppetstore.data.model.Pet
 import com.project.apppetstore.ui.components.PrimaryButton
 import kotlinx.coroutines.delay
@@ -45,8 +46,16 @@ fun PetDetailScreen(
     // 👇 conectar chat real
     messages: List<ChatMessage>,
     currentInput: String,
+    pendingAttachment: ChatAttachment?,
     onInputChange: (String) -> Unit,
     onSendMessage: () -> Unit,
+    onRemovePendingAttachment: () -> Unit,
+    onTakePhoto: () -> Unit,
+    onPickImage: () -> Unit,
+    onRecordVideo: () -> Unit,
+    onPickVideo: () -> Unit,
+    onRecordAudio: () -> Unit,
+    onPickAudio: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -171,8 +180,16 @@ fun PetDetailScreen(
             ChatSection(
                 messages = messages,
                 currentInput = currentInput,
+                pendingAttachment = pendingAttachment,
                 onInputChange = onInputChange,
-                onSendMessage = onSendMessage
+                onSendMessage = onSendMessage,
+                onRemovePendingAttachment = onRemovePendingAttachment,
+                onTakePhoto = onTakePhoto,
+                onPickImage = onPickImage,
+                onRecordVideo = onRecordVideo,
+                onPickVideo = onPickVideo,
+                onRecordAudio = onRecordAudio,
+                onPickAudio = onPickAudio
             )
             Spacer(modifier = Modifier.height(24.dp))
         }

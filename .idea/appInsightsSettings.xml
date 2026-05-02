@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.project.apppetstore" />
+                  <option name="mobileSdkAppId" value="1:873866275765:android:a4dc079c586e41cd6607fc" />
+                  <option name="projectId" value="react-test-879a2" />
+                  <option name="projectNumber" value="873866275765" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
