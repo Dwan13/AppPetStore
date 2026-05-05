@@ -1,6 +1,8 @@
 package com.project.apppetstore.ui.feature.home
 
 import android.Manifest
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -20,8 +23,11 @@ import androidx.compose.material.icons.outlined.CloseFullscreen
 import androidx.compose.material.icons.outlined.OpenInFull
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,9 +37,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.isGranted
@@ -63,7 +71,7 @@ private val homeMapPois = listOf(
     LatLng(4.640045, -74.088929)
 )
 
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
@@ -74,6 +82,8 @@ fun HomeScreen(
 ) {
     val permissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
     var isMapExpanded by rememberSaveable { mutableStateOf(false) }
+    var highlightedPetIndex by rememberSaveable { mutableStateOf(0) }
+    val petsCarouselState = rememberCarouselState { uiState.pets.size }
     val mapHeight = if (isMapExpanded) 420.dp else 180.dp
 
     val cameraPositionState = rememberCameraPositionState {
@@ -194,15 +204,46 @@ fun HomeScreen(
 
         item { SectionTitle(title = "Mascotas en adopcion") }
         item {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(uiState.pets, key = { it.id }) { pet ->
-                    PetCard(
-                        pet = pet,
-                        modifier = Modifier.fillParentMaxWidth(0.62f),
-                        onClick = onPetClick?.let { { it(pet.id) } },
-                        image = pet.imageRes?.let { androidx.compose.ui.res.painterResource(it) }
-                    )
-                }
+            HorizontalMultiBrowseCarousel(
+                state = petsCarouselState,
+                modifier = Modifier.fillMaxWidth(),
+                preferredItemWidth = 208.dp,
+                itemSpacing = 10.dp,
+                // Padding asimetrico: ancla visual a la izquierda y evita que las cards laterales se perciban recortadas.
+                contentPadding = PaddingValues(start = 10.dp, end = 34.dp)
+            ) { index ->
+                val pet = uiState.pets[index]
+                val isActive = highlightedPetIndex == index
+                val scale by animateFloatAsState(
+                    targetValue = if (isActive) 1f else 0.96f,
+                    label = "home_pet_card_scale"
+                )
+                val alpha by animateFloatAsState(
+                    targetValue = if (isActive) 1f else 0.84f,
+                    label = "home_pet_card_alpha"
+                )
+                val yOffset by animateDpAsState(
+                    targetValue = if (isActive) 0.dp else 6.dp,
+                    label = "home_pet_card_offset"
+                )
+                PetCard(
+                    pet = pet,
+                    modifier = Modifier
+                        .zIndex(if (isActive) 1f else 0f)
+                        .offset(y = yOffset)
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            this.alpha = alpha
+                        }
+                        .fillMaxWidth()
+                        .clickable {
+                            highlightedPetIndex = index
+                            onPetClick?.invoke(pet.id)
+                        },
+                    onClick = onPetClick?.let { { it(pet.id) } },
+                    image = pet.imageRes?.let { androidx.compose.ui.res.painterResource(it) }
+                )
             }
         }
 
