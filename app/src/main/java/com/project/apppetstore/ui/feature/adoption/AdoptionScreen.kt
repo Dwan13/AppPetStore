@@ -11,6 +11,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,9 +27,12 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -46,6 +51,7 @@ import com.project.apppetstore.ui.components.ChatSection
 import com.project.apppetstore.ui.components.PetCard
 import com.project.apppetstore.utils.createVideoOnMoviesFolder
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdoptionScreen(
     uiState: AdoptionUiState,
@@ -66,6 +72,8 @@ fun AdoptionScreen(
     val selectedPet = uiState.pets.find { it.id == selectedPetId }
     var showCameraDialog by remember { mutableStateOf(false) }
     var pendingVideoUri by remember { mutableStateOf<Uri?>(null) }
+    var highlightedPetIndex by remember { mutableStateOf(0) }
+    val petsCarouselState = rememberCarouselState { petsToShow.size }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -261,16 +269,33 @@ fun AdoptionScreen(
                 modifier = Modifier.padding(bottom = 4.dp)
             )
 
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(petsToShow, key = { it.id }) { pet ->
-                    PetCard(
-                        pet = pet,
-                        modifier = Modifier
-                            .fillParentMaxWidth(0.65f)
-                            .clickable { onPetSelected(pet.id) },
-                        image = pet.imageRes?.let { painterResource(it) }
-                    )
-                }
+            HorizontalMultiBrowseCarousel(
+                state = petsCarouselState,
+                modifier = Modifier.fillMaxWidth(),
+                preferredItemWidth = 220.dp,
+                itemSpacing = 10.dp,
+                contentPadding = PaddingValues(horizontal = 20.dp)
+            ) { index ->
+                val pet = petsToShow[index]
+                val isActive = highlightedPetIndex == index
+                val scale by animateFloatAsState(
+                    targetValue = if (isActive) 1f else 0.93f,
+                    label = "adoption_pet_card_scale"
+                )
+                PetCard(
+                    pet = pet,
+                    modifier = Modifier
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                        }
+                        .fillMaxWidth()
+                        .clickable {
+                            highlightedPetIndex = index
+                            onPetSelected(pet.id)
+                        },
+                    image = pet.imageRes?.let { painterResource(it) }
+                )
             }
 
             ChatSection(

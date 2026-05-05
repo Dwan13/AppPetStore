@@ -9,24 +9,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberDrawerState
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -52,7 +45,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.project.apppetstore.navigation.AppDestination
 import com.project.apppetstore.ui.components.AppBottomNavigationBar
-import com.project.apppetstore.ui.components.AppDrawerContent
 import com.project.apppetstore.ui.feature.adoption.AdoptionScreen
 import com.project.apppetstore.ui.feature.adoption.AdoptionViewModel
 import com.project.apppetstore.ui.feature.home.HomeScreen
@@ -70,17 +62,12 @@ import com.project.apppetstore.ui.feature.profile.RegisterScreen
 import com.project.apppetstore.ui.feature.services.ServicesScreen
 import com.project.apppetstore.ui.feature.services.ServicesViewModel
 
-import kotlinx.coroutines.launch
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppPetShopApp() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: AppDestination.Home.route
-
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
 
     val profileViewModel: ProfileViewModel = viewModel()
     var showLoginSheet by rememberSaveable { mutableStateOf(false) }
@@ -94,25 +81,7 @@ fun AppPetShopApp() {
         }
     )
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet {
-                AppDrawerContent(
-                    currentRoute = currentRoute,
-                    onDestinationSelected = { destination ->
-                        navController.navigate(destination.route) {
-                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                        scope.launch { drawerState.close() }
-                    }
-                )
-            }
-        }
-    ) {
-        Scaffold(
+    Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
                 CenterAlignedTopAppBar(
@@ -148,21 +117,6 @@ fun AppPetShopApp() {
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp
-                            )
-                        }
-                    },
-
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            scope.launch {
-                                if (drawerState.isClosed) drawerState.open()
-                                else drawerState.close()
-                            }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Outlined.Menu,
-                                contentDescription = "Menu",
-                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     },
@@ -386,5 +340,4 @@ fun AppPetShopApp() {
                 )
             }
         }
-    }
 }
