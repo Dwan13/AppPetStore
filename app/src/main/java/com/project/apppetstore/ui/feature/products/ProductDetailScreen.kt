@@ -14,25 +14,60 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.project.apppetstore.data.model.Product
+import com.project.apppetstore.ui.viewmodels.SensorViewModel
 
 @Composable
 fun ProductDetailScreen(
     product: Product,
     onBack: () -> Unit,
     onBuyNow: (quantity: Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // UC-26: SensorViewModel para el parallax con giroscopio
+    sensorViewModel: SensorViewModel = viewModel()
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val density = LocalDensity.current.density
+
+    // UC-26: registrar sensores al entrar, detener al salir
+    DisposableEffect(Unit) {
+        sensorViewModel.setup(context)
+        sensorViewModel.startListening()
+        onDispose { sensorViewModel.stopListening() }
+    }
+
+    val sensorState by sensorViewModel.state.collectAsState()
+
+    // UC-26: parallax con spring para movimiento suave
+    val parallaxOffsetX by animateFloatAsState(
+        targetValue = (sensorState.gyroY * 28f).coerceIn(-14f, 14f),
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioNoBouncy),
+        label = "productParallaxX"
+    )
+    val parallaxOffsetY by animateFloatAsState(
+        targetValue = (sensorState.gyroX * 20f).coerceIn(-10f, 10f),
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioNoBouncy),
+        label = "productParallaxY"
+    )
+
     var quantity by remember { mutableIntStateOf(1) }
 
     // Calcular precio con descuento
@@ -50,7 +85,7 @@ fun ProductDetailScreen(
                 .padding(bottom = 100.dp)   // espacio para la barra inferior fija
         ) {
 
-            // Hero image
+            // Hero image con parallax UC-26
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -61,7 +96,15 @@ fun ProductDetailScreen(
                         painter = painterResource(product.imageRes),
                         contentDescription = product.name,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                // UC-26: ligera ampliación para que el parallax no exponga bordes
+                                scaleX = 1.06f
+                                scaleY = 1.06f
+                                translationX = parallaxOffsetX * density
+                                translationY = parallaxOffsetY * density
+                            }
                     )
                 } else {
                     Box(

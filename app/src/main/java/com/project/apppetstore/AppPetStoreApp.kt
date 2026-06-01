@@ -460,6 +460,12 @@ fun AppPetShopApp() {
                         onAttachMedia             = viewModel::attachMedia,
                         onRemovePendingAttachment = viewModel::removePendingAttachment,
                         selectedPetId             = petId,
+                        // UC-25: navegar al perfil de la mascota sorpresa
+                        onNavigateToPet           = { discoveredPetId ->
+                            navController.navigate("adoption?petId=$discoveredPetId") {
+                                launchSingleTop = true
+                            }
+                        },
                         onBack                    = { navController.popBackStack() }
                     )
                 }
