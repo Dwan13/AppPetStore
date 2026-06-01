@@ -29,7 +29,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,7 +46,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.google.firebase.auth.FirebaseAuth
 import com.project.apppetstore.navigation.AppDestination
 import com.project.apppetstore.ui.components.AppBottomNavigationBar
 import com.project.apppetstore.ui.feature.adoption.AdoptionScreen
@@ -120,27 +118,32 @@ fun AppPetShopApp() {
 
         var showProfilePhotoCamera by rememberSaveable { mutableStateOf(false) }
 
-        val startDestination = remember {
-            if (FirebaseAuth.getInstance().currentUser != null)
-                AppDestination.Home.route
-            else
-                AppDestination.Login.route
-        }
+        // Punto de entrada: Home si hay sesión activa, Profile (pantalla guest)
+        // si no la hay. El ViewModel ya resuelve auth.currentUser sincrónicamente.
+        val startDestination = if (authState.isLoggedIn) AppDestination.Home.route
+                               else AppDestination.Profile.route
 
         // ── Guard de navegación ───────────────────────────────────────────────
         LaunchedEffect(authState.isLoggedIn) {
-            val onAuthScreen = currentRoute == AppDestination.Login.route ||
-                               currentRoute == AppDestination.Register.route
+            val onAuthScreen  = currentRoute == AppDestination.Login.route ||
+                                currentRoute == AppDestination.Register.route
+            val onGuestScreen = currentRoute == AppDestination.Profile.route
 
-            if (authState.isLoggedIn && onAuthScreen) {
-                navController.navigate(AppDestination.Home.route) {
-                    popUpTo(0) { inclusive = true }
-                    launchSingleTop = true
+            when {
+                // Recién autenticado en Login/Register → ir a Home
+                authState.isLoggedIn && onAuthScreen -> {
+                    navController.navigate(AppDestination.Home.route) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
-            } else if (!authState.isLoggedIn && !onAuthScreen && currentRoute.isNotEmpty()) {
-                navController.navigate(AppDestination.Login.route) {
-                    popUpTo(0) { inclusive = true }
-                    launchSingleTop = true
+                // Sesión cerrada (logout) o no autenticado en ruta protegida → Profile guest
+                !authState.isLoggedIn && !onAuthScreen && !onGuestScreen
+                        && currentRoute.isNotEmpty() -> {
+                    navController.navigate(AppDestination.Profile.route) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             }
         }
@@ -153,7 +156,11 @@ fun AppPetShopApp() {
         val isAuthRoute = currentRoute == AppDestination.Login.route ||
                           currentRoute == AppDestination.Register.route
 
-        val hideScaffoldBars = isAuthRoute ||
+        // La barra superior y la navegación inferior solo se muestran cuando
+        // el usuario está autenticado Y no está en una pantalla de flujo específico
+        // que usa su propia barra (detail, checkout, mapa, etc.).
+        val hideScaffoldBars = !authState.isLoggedIn ||
+                          isAuthRoute ||
                           currentRoute.startsWith("product/") ||
                           currentRoute.startsWith("checkout/") ||
                           currentRoute.startsWith("appointment") ||
@@ -494,9 +501,12 @@ fun AppPetShopApp() {
                             onLogout         = profileViewModel::logout
                         )
                     } else {
+                        // Pantalla de invitación al login para usuarios no autenticados.
+                        // Navegamos a Login apilado (sin borrar Home) para que el Back
+                        // funcione y la sesión recién iniciada lleve de vuelta a Home.
                         ProfileScreen(onOpenLoginSheet = {
                             navController.navigate(AppDestination.Login.route) {
-                                popUpTo(0) { inclusive = true }
+                                launchSingleTop = true
                             }
                         })
                     }
