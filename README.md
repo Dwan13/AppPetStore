@@ -10,13 +10,9 @@ Aplicación Android nativa (Kotlin + Jetpack Compose) para servicios y productos
 2. [Configuración local](#2-configuración-local)
 3. [Estructura del proyecto](#3-estructura-del-proyecto)
 4. [Módulos y pantallas implementadas](#4-módulos-y-pantallas-implementadas)
-5. [Sensores del dispositivo](#5-sensores-del-dispositivo)
-6. [Autenticación y navegación protegida](#6-autenticación-y-navegación-protegida)
-7. [Flujo de navegación](#7-flujo-de-navegación)
-8. [Firebase y base de datos](#8-firebase-y-base-de-datos)
-9. [Casos de uso e historias de usuario](#9-casos-de-uso-e-historias-de-usuario)
-10. [Flujo Git recomendado](#10-flujo-git-recomendado)
-11. [Troubleshooting](#11-troubleshooting)
+5. [Autenticación y navegación protegida](#6-autenticación-y-navegación-protegida)
+6. [Flujo de navegación](#7-flujo-de-navegación)
+7. [Firebase y base de datos](#8-firebase-y-base-de-datos)
 
 ---
 
