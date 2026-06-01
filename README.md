@@ -11,11 +11,12 @@ Aplicación Android nativa (Kotlin + Jetpack Compose) para servicios y productos
 3. [Estructura del proyecto](#3-estructura-del-proyecto)
 4. [Módulos y pantallas implementadas](#4-módulos-y-pantallas-implementadas)
 5. [Sensores del dispositivo](#5-sensores-del-dispositivo)
-6. [Autenticación](#6-autenticación)
+6. [Autenticación y navegación protegida](#6-autenticación-y-navegación-protegida)
 7. [Flujo de navegación](#7-flujo-de-navegación)
 8. [Firebase y base de datos](#8-firebase-y-base-de-datos)
-9. [Flujo Git recomendado](#9-flujo-git-recomendado)
-10. [Troubleshooting](#10-troubleshooting)
+9. [Casos de uso e historias de usuario](#9-casos-de-uso-e-historias-de-usuario)
+10. [Flujo Git recomendado](#10-flujo-git-recomendado)
+11. [Troubleshooting](#11-troubleshooting)
 
 ---
 
@@ -35,6 +36,7 @@ Aplicación Android nativa (Kotlin + Jetpack Compose) para servicios y productos
 | Sensores | Android SensorManager (acelerómetro, giroscopio, luz) |
 | Imágenes | Coil 3 (AsyncImage) |
 | Credenciales Google | Credential Manager (GetSignInWithGoogleOption) |
+| Preferencias | Jetpack DataStore |
 | Mínimo SDK | 26 (Android 8.0) |
 | Target SDK | 35 |
 
@@ -124,7 +126,7 @@ app/src/main/java/com/project/apppetstore/
 ├── utils/
 │   ├── AppNotificationHelper.kt   # Notificaciones push del sistema
 │   └── FileUtils.kt
-├── AppPetStoreApp.kt              # NavHost principal + Scaffold
+├── AppPetStoreApp.kt              # NavHost principal + Scaffold con guards de autenticación
 ├── AppPetStoreApplication.kt      # Application
 └── MainActivity.kt
 ```
@@ -204,41 +206,29 @@ app/src/main/java/com/project/apppetstore/
 
 ---
 
-## 5. Sensores del dispositivo
+## 5. Autenticación y navegación protegida
 
-El proyecto usa `SensorViewModel` (acelerómetro, giroscopio, sensor de luz) con tres casos de uso reales:
+> **Regla de oro:** la barra de navegación inferior y la barra superior están **completamente ocultas** mientras el usuario no esté autenticado. No hay forma de acceder a ninguna pestaña sin iniciar sesión.
 
-### UC-25 — Shake to Discover (Acelerómetro)
-**Pantalla:** `AdoptionScreen`  
-Agitar el teléfono (magnitud > 15.5 m/s², debounce 2 s) muestra un `ModalBottomSheet` con una mascota aleatoria disponible para adopción. El usuario puede ver su perfil completo o agitar de nuevo para ver otra.
+### Flujo no autenticado
+1. La app arranca en `ProfileScreen` (modo guest): branding, ilustración y botón "Iniciar sesión".
+2. Pulsar "Iniciar sesión" apila `LoginScreen` — el botón **Back** regresa a la pantalla de bienvenida.
+3. Desde `LoginScreen` se puede navegar a `RegisterScreen`.
+4. Tras autenticarse correctamente, la app navega a `Home` limpiando toda la pila (`popUpTo(0) { inclusive = true }`) y habilita la navegación completa.
 
-### UC-26 — Efecto Parallax (Giroscopio)
-**Pantallas:** `PetDetailScreen`, `ProductDetailScreen`  
-Inclinar el teléfono desplaza la imagen principal ±14 dp en X y ±10 dp en Y, creando un efecto de profundidad 3D. El movimiento es suavizado con interpolación exponencial (lerp) y `animateFloatAsState`. La imagen tiene zoom 6% para evitar bordes visibles.
-
-### UC-27 — Mapa nocturno automático (Sensor de luz)
-**Pantalla:** `MapScreen`  
-El sensor de luz detecta ambientes oscuros (< 30 lux) y aplica automáticamente el estilo de mapa nocturno (`map_style_dark.json`). Usa histéresis: se activa por debajo de 30 lux y se desactiva por encima de 80 lux.
-
----
-
-## 6. Autenticación
-
-### Flujo de usuario no autenticado
-- La app inicia en la **pantalla de bienvenida** (`ProfileScreen` guest): branding, ilustración y botón "Iniciar sesión".
-- La **barra de navegación inferior y la barra superior están ocultas** — el usuario no puede navegar entre tabs.
-- El botón "Iniciar sesión" lleva a `LoginScreen` (apilado, el Back regresa a la pantalla de bienvenida).
-- Tras autenticarse, se redirige automáticamente a `Home` con la pila limpia y la navegación habilitada.
-- Si el usuario cierra sesión, la app regresa automáticamente a la pantalla de bienvenida y oculta la navegación.
+### Guard de rutas protegidas
+Un `LaunchedEffect(authState.isLoggedIn)` en `AppPetStoreApp` protege todas las rutas:
+- Si la sesión se cierra estando en cualquier pantalla protegida → redirige a `ProfileScreen` (guest) y limpia la pila.
+- El `startDestination` del `NavHost` es condicional: `Profile` si no hay sesión activa, `Home` si hay sesión (resuelto síncronamente desde `FirebaseAuth.currentUser`).
 
 ### Login con email y contraseña (`LoginScreen`)
-- Validación en tiempo real al salir de cada campo (blur) y al enviar.
+- Validación en tiempo real al perder el foco de cada campo y al enviar.
 - Errores amigables mapeados desde Firebase Auth.
 
 ### Registro (`RegisterScreen`)
-- Validaciones: nombre (≥ 3 caracteres), email (regex RFC 5322), contraseña (≥ 8 caracteres + número + mayúscula), confirmación.
+- Validaciones: nombre (≥ 3 caracteres), email (regex RFC 5322), contraseña (≥ 8 caracteres + número + mayúscula), confirmación de contraseña.
 - Indicador de fortaleza de contraseña animado (4 niveles: Muy corta → Fuerte).
-- Requisitos mostrados antes del primer intento.
+- Todos los campos validan al perder el foco (`onFocusChanged`) sin necesidad de pulsar "Registrarse" primero.
 
 ### Google Sign-In (Login y Registro)
 - Estrategia dos pasos: `GetSignInWithGoogleOption` → fallback `GetGoogleIdOption`.
@@ -247,47 +237,51 @@ El sensor de luz detecta ambientes oscuros (< 30 lux) y aplica automáticamente 
 
 ---
 
-## 7. Flujo de navegación
+## 6. Flujo de navegación
 
 ```
-[Sin sesión]
-  ProfileScreen (guest) ──→ LoginScreen ──→ RegisterScreen
-        ↑                         │
-        └── Back                  └── Login exitoso
-                                         ↓
-[Con sesión — barra superior y bottom nav habilitadas]
+[Sin sesión — TopBar y BottomNav OCULTOS]
+  ProfileScreen (guest)
+        │
+        └── "Iniciar sesión" ──→ LoginScreen ──→ RegisterScreen
+                                      │
+                                      └── Login/Registro exitoso
+                                                   ↓
+[Con sesión — TopBar y BottomNav HABILITADOS]
+
   Home ──────────────────── (pestaña principal)
    ├── Mapa (BottomSheet) → ServiceActionCard → Cita / Domicilio
-   ├── Mascota en adopción → AdoptionScreen (detalle + chat)
-   └── Servicio → Cita o Domicilio (según supportsDelivery)
+   ├── Mascota en adopción → AdoptionScreen
+   └── Servicio → AppointmentScreen o DeliveryScheduleScreen
 
   Services ──────────────── (pestaña)
-   └── Agendar → AppointmentScreen o DeliveryScheduleScreen → MapScreen
+   └── Servicio → AppointmentScreen o DeliveryScheduleScreen → MapScreen
 
   Products ──────────────── (pestaña)
-   └── Producto → ProductDetailScreen → CheckoutScreen
+   └── Producto → ProductDetailScreen (parallax UC-26) → CheckoutScreen
 
   Adoption ──────────────── (pestaña)
-   └── Pet → PetDetailScreen (chat + adopción)
+   ├── Shake del teléfono → BottomSheet mascota aleatoria (UC-25)
+   └── Mascota → PetDetailScreen (chat + adopción + parallax UC-26)
 
   Profile ────────────────── (pestaña)
    ├── Mis Mascotas
    ├── Pedidos
    ├── Favoritos
    ├── Configuración
-   └── Cerrar sesión → ProfileScreen (guest) [sin nav]
+   └── Cerrar sesión ──→ ProfileScreen (guest) [TopBar y BottomNav OCULTOS]
 ```
 
 ---
 
-## 8. Firebase y base de datos
+## 7. Firebase y base de datos
 
 ### Colecciones Firestore
 
 | Colección | Descripción |
 |---|---|
 | `users/{uid}` | Perfil de usuario: fullName, email, profilePhotoUrl, petProfile |
-| `chats/{uid_petId}/messages` | Mensajes del chat de adopción |
+| `chats/{uid_petId}/messages` | Mensajes del chat de adopción (texto + adjuntos) |
 | `services` | Catálogo de servicios: nombre, categoría, lat, lng, supportsDelivery |
 | `products` | Catálogo de productos: nombre, precio, categoría, stock, descuento |
 | `pets` | Mascotas en adopción: nombre, raza, edad, salud, fotos |
@@ -298,76 +292,4 @@ El sensor de luz detecta ambientes oscuros (< 30 lux) y aplica automáticamente 
 |---|---|
 | `users/{uid}/profile.jpg` | Foto de perfil del usuario |
 | `users/{uid}/pet.jpg` | Foto de la mascota del usuario |
-| `chats/{chatId}/{timestamp}.{ext}` | Adjuntos del chat (imagen, video, audio) |
-
----
-
-## 9. Flujo Git recomendado
-
-```bash
-# Clonar y posicionarse en develop
-git clone URL_DEL_REPOSITORIO
-cd AppPetStore
-git checkout develop
-
-# Crear rama de trabajo
-git checkout -b feature/nombre-corto
-
-# Guardar cambios
-git add .
-git commit -m "feat: descripcion breve del cambio"
-git push origin feature/nombre-corto
-
-# Actualizar desde develop
-git pull origin develop
-```
-
-### Convención de commits
-
-| Prefijo | Uso |
-|---|---|
-| `feat:` | Nueva funcionalidad |
-| `fix:` | Corrección de bug |
-| `refactor:` | Refactorización sin cambio funcional |
-| `ui:` | Cambios visuales / de diseño |
-| `docs:` | Documentación |
-| `chore:` | Tareas de mantenimiento (deps, config) |
-
----
-
-## 10. Troubleshooting
-
-### Google Sign-In no hace nada al pulsar el botón
-1. Verifica que la huella SHA-1 de debug esté en Firebase Console:
-   ```bash
-   ./gradlew signingReport   # copia SHA1 de debug
-   ```
-2. Descarga nuevamente `google-services.json` y reemplázalo en `app/`.
-3. Haz **Build → Clean Project** y luego **Run**.
-
-### Error de instalación en emulador: `Broken pipe (32)`
-1. Device Manager → **Cold Boot Now**.
-2. Si persiste, **Wipe Data** del emulador.
-3. Verifica aceleración de virtualización (AMD: WHPX / Intel: HAXM).
-
-### El mapa no carga (pantalla gris)
-- Verifica que `MAPS_API_KEY` en `local.properties` sea válida.
-- Confirma que **Maps SDK for Android** y **Directions API** estén habilitados en Google Cloud Console.
-
-### Fotos/videos no se cargan en el chat
-- Verifica las reglas de Firebase Storage (permisos de escritura para usuarios autenticados).
-- Comprueba que el archivo `google-services.json` sea el correcto para tu proyecto.
-
-### Comandos ADB útiles (Windows)
-
-```powershell
-$adb = "C:\Users\TU_USUARIO\AppData\Local\Android\Sdk\platform-tools\adb.exe"
-& $adb devices -l
-& $adb kill-server
-& $adb start-server
-```
-
----
-
-> Documentación generada con el estado actual del proyecto (2026-05-31).  
-> Para casos de uso detallados e historias de usuario ver [`CASOS_DE_USO.md`](./CASOS_DE_USO.md).
+| `chats/{chatId}/{timestamp}.{ext}` | Adjuntos del chat (imagen `.jpg`, video `.mp4`, audio `.aac`) |
