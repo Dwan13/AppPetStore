@@ -1,22 +1,26 @@
 package com.project.apppetstore.ui.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import coil3.compose.AsyncImage
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.DateRange
+import androidx.compose.material.icons.rounded.TwoWheeler
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.project.apppetstore.data.model.Service
 import com.project.apppetstore.R
+import com.project.apppetstore.data.model.Service
 
 @Composable
 fun ServiceCard(
@@ -24,49 +28,142 @@ fun ServiceCard(
     onScheduleClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    Card(
+    ElevatedCard(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        shape = MaterialTheme.shapes.large,
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            val imageResId = try {
-                if (service.imageRes != 0) service.imageRes else R.drawable.ic_user_round
-            } catch (e: Exception) {
-                R.drawable.ic_user_round
-            }
-            Image(
-                painter = painterResource(id = imageResId),
-                contentDescription = service.name,
+            // Avatar circular — URL remota con fallback a drawable local
+            Box(
                 modifier = Modifier
-                    .height(64.dp)
-                    .width(64.dp)
-            )
-            Spacer(modifier = Modifier.width(12.dp))
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                if (!service.imageUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model              = service.imageUrl,
+                        contentDescription = service.name,
+                        contentScale       = ContentScale.Crop,
+                        modifier           = Modifier.fillMaxSize()
+                    )
+                } else {
+                    val fallbackRes = runCatching {
+                        if (service.imageRes != 0) service.imageRes else R.drawable.ic_user_round
+                    }.getOrDefault(R.drawable.ic_user_round)
+                    Image(
+                        painter            = painterResource(id = fallbackRes),
+                        contentDescription = service.name,
+                        contentScale       = ContentScale.Crop,
+                        modifier           = Modifier.fillMaxSize()
+                    )
+                }
+            }
+
+            // Información
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Text(text = service.name, style = MaterialTheme.typography.titleMedium)
-                Text(text = service.category, style = MaterialTheme.typography.labelMedium)
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = service.name,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = service.category,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    // Calificación siempre visible
                     Icon(
                         painter = painterResource(R.drawable.star),
-                        contentDescription = "Rating",
+                        contentDescription = null,
                         tint = Color(0xFFFFC107),
-                        modifier = Modifier.height(16.dp)
+                        modifier = Modifier.size(14.dp)
                     )
-                    Text(text = "${service.rating}", fontSize = 12.sp, color = Color(0xFF444444), modifier = Modifier.padding(start = 2.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(painter = painterResource(R.drawable.ic_map_pin), contentDescription = "Distancia", modifier = Modifier.height(16.dp))
-                    Text(text = "${service.distanceKm}km", fontSize = 12.sp, color = Color(0xFF444444), modifier = Modifier.padding(start = 2.dp))
+                    Text(
+                        text = "${service.rating}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    // Distancia: solo se muestra si tenemos un dato real (> 0)
+                    if (service.distanceKm > 0.0) {
+                        Text(
+                            text = "·",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Icon(
+                            painter = painterResource(R.drawable.ic_map_pin),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = "${"%.1f".format(service.distanceKm)} km",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = onScheduleClick, modifier = Modifier.height(32.dp)) {
-                Text("Agendar", fontSize = 12.sp)
+
+            // Botón: "Domicilio" o "Agendar turno" según el servicio
+            if (service.supportsDelivery) {
+                FilledTonalButton(
+                    onClick = onScheduleClick,
+                    shape = RoundedCornerShape(50),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                    modifier = Modifier.height(36.dp),
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor   = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.TwoWheeler,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = "Domicilio",
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+            } else {
+                FilledTonalButton(
+                    onClick = onScheduleClick,
+                    shape = RoundedCornerShape(50),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                    modifier = Modifier.height(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.DateRange,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = "Agendar turno",
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
             }
         }
     }

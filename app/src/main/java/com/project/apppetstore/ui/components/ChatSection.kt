@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -45,7 +46,9 @@ fun ChatSection(
     onRecordVideo: () -> Unit,
     onPickVideo: () -> Unit,
     onRecordAudio: () -> Unit,
-    onPickAudio: () -> Unit
+    onPickAudio: () -> Unit,
+    isUploading: Boolean = false,
+    isLoadingMessages: Boolean = false    // skeleton mientras llega el 1er snapshot
 ) {
     var showAttachMenu by remember { mutableStateOf(false) }
 
@@ -66,12 +69,19 @@ fun ChatSection(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            LazyColumn(
-                modifier = Modifier.heightIn(max = 180.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(messages, key = { it.id }) { message ->
-                    ChatBubble(message)
+            if (isLoadingMessages) {
+                // Skeleton mientras llegan los mensajes de Firestore
+                ChatMessagesSkeleton(
+                    modifier = Modifier.heightIn(max = 180.dp)
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.heightIn(max = 180.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(messages, key = { it.id }) { message ->
+                        ChatBubble(message)
+                    }
                 }
             }
 
@@ -106,6 +116,25 @@ fun ChatSection(
             }
 
             Spacer(modifier = Modifier.height(10.dp))
+
+            if (isUploading) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(bottom = 6.dp)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Subiendo archivo...",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically

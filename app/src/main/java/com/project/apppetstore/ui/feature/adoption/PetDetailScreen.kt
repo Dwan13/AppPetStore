@@ -15,13 +15,18 @@ import androidx.compose.material.icons.filled.Face
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -43,10 +48,12 @@ fun PetDetailScreen(
     onAdoptClick: () -> Unit,
     onBack: () -> Unit,
 
-    // 👇 conectar chat real
+    // conectar chat real
     messages: List<ChatMessage>,
     currentInput: String,
     pendingAttachment: ChatAttachment?,
+    isUploading: Boolean = false,
+    isLoadingMessages: Boolean = false,
     onInputChange: (String) -> Unit,
     onSendMessage: () -> Unit,
     onRemovePendingAttachment: () -> Unit,
@@ -56,8 +63,24 @@ fun PetDetailScreen(
     onPickVideo: () -> Unit,
     onRecordAudio: () -> Unit,
     onPickAudio: () -> Unit,
+    // UC-26: valores del giroscopio suavizados para el parallax
+    gyroX: Float = 0f,
+    gyroY: Float = 0f,
     modifier: Modifier = Modifier
 ) {
+    val density = LocalDensity.current.density
+
+    // UC-26: animar el desplazamiento con spring para eliminar jitter
+    val parallaxOffsetX by animateFloatAsState(
+        targetValue = (gyroY * 28f).coerceIn(-14f, 14f),
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioNoBouncy),
+        label = "parallaxX"
+    )
+    val parallaxOffsetY by animateFloatAsState(
+        targetValue = (gyroX * 20f).coerceIn(-10f, 10f),
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioNoBouncy),
+        label = "parallaxY"
+    )
 
     val scrollState = rememberScrollState()
     LaunchedEffect(Unit) {
@@ -70,15 +93,22 @@ fun PetDetailScreen(
                 .verticalScroll(scrollState)
                 .padding(bottom = 80.dp)
         ) {
-            Box(modifier = Modifier.height(260.dp).fillMaxWidth()) {
+            Box(modifier = Modifier.height(280.dp).fillMaxWidth()) {
                 when {
                     pet.imageUrl != null -> {
-                        // Si hay URL, usa AsyncImage
                         AsyncImage(
                             model = pet.imageUrl,
                             contentDescription = pet.name,
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer {
+                                    // UC-26: parallax — escala ligeramente para evitar bordes vacíos
+                                    scaleX = 1.06f
+                                    scaleY = 1.06f
+                                    translationX = parallaxOffsetX * density
+                                    translationY = parallaxOffsetY * density
+                                },
                             fallback = rememberVectorPainter(Icons.Default.Face),
                             error = rememberVectorPainter(Icons.Default.Clear),
                         )
@@ -88,7 +118,14 @@ fun PetDetailScreen(
                             painter = painterResource(pet.imageRes),
                             contentDescription = pet.name,
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer {
+                                    scaleX = 1.06f
+                                    scaleY = 1.06f
+                                    translationX = parallaxOffsetX * density
+                                    translationY = parallaxOffsetY * density
+                                },
                         )
                     }
                     else -> {
@@ -140,10 +177,11 @@ fun PetDetailScreen(
             Spacer(modifier = Modifier.height(12.dp))
             Box(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .padding(horizontal = 12.dp)
                     .shadow(4.dp, RoundedCornerShape(18.dp))
-                    .background(Color.White, shape = RoundedCornerShape(18.dp))
-                    .border(1.dp, Color(0xFFE5E7EB), shape = RoundedCornerShape(18.dp))
+                    .background(Color.White, RoundedCornerShape(18.dp))
+                    .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(18.dp))
                     .padding(18.dp)
             ) {
                 Column {
@@ -181,6 +219,8 @@ fun PetDetailScreen(
                 messages = messages,
                 currentInput = currentInput,
                 pendingAttachment = pendingAttachment,
+                isUploading = isUploading,
+                isLoadingMessages = isLoadingMessages,
                 onInputChange = onInputChange,
                 onSendMessage = onSendMessage,
                 onRemovePendingAttachment = onRemovePendingAttachment,

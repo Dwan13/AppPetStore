@@ -69,6 +69,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.firebase.auth)
+    implementation("com.google.firebase:firebase-storage-ktx:21.0.1")
+    implementation("com.google.firebase:firebase-firestore-ktx:25.1.2")
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)

@@ -3,40 +3,50 @@ package com.project.apppetstore.ui.feature.services
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.project.apppetstore.data.model.Service
+import com.project.apppetstore.data.repository.FirestoreServicesRepository
 import com.project.apppetstore.data.repository.MockPetShopRepository
-import com.project.apppetstore.data.repository.PetShopRepository
+import kotlinx.coroutines.launch
 
 data class ServicesUiState(
-    val filters: List<String> = emptyList(),
-    val selectedFilter: String = "Todos",
-    val services: List<Service> = emptyList()
+    val filters       : List<String>  = emptyList(),
+    val selectedFilter: String        = "Todos",
+    val services      : List<Service> = emptyList(),
+    val isLoading     : Boolean       = true
 )
 
-class ServicesViewModel(
-    private val repository: PetShopRepository = MockPetShopRepository
-) : ViewModel() {
+class ServicesViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val allServices = repository.getServices()
+    private var allServices: List<Service> = emptyList()
 
-    var uiState by mutableStateOf(
-        ServicesUiState(
-            filters = listOf("Todos") + allServices.map { it.category }.distinct(),
-            services = allServices
-        )
-    )
+    var uiState by mutableStateOf(ServicesUiState())
         private set
 
+    init {
+        viewModelScope.launch {
+            val ctx = getApplication<Application>()
+            allServices = try {
+                FirestoreServicesRepository.getServices(ctx).sortedByDescending { it.rating }
+            } catch (_: Exception) {
+                MockPetShopRepository.getServices().sortedByDescending { it.rating }
+            }
+            uiState = ServicesUiState(
+                filters   = listOf("Todos") + allServices.map { it.category }.distinct(),
+                services  = allServices,
+                isLoading = false
+            )
+        }
+    }
+
     fun onFilterSelected(filter: String) {
+        val filtered = if (filter == "Todos") allServices
+                       else allServices.filter { it.category == filter }
         uiState = uiState.copy(
             selectedFilter = filter,
-            services = if (filter == "Todos") {
-                allServices
-            } else {
-                allServices.filter { it.category == filter }
-            }
+            services       = filtered
         )
     }
 }
-
