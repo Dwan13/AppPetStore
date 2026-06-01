@@ -235,8 +235,13 @@ fun AdoptionScreen(
 
     Column(
         modifier = modifier
-            .padding(horizontal = 16.dp)
-            .padding(top = 16.dp, bottom = 8.dp),
+            .then(
+                // En detalle de mascota quitamos el padding lateral para que ocupe todo el ancho
+                if (selectedPet == null)
+                    Modifier.padding(horizontal = 16.dp).padding(top = 16.dp, bottom = 8.dp)
+                else
+                    Modifier
+            ),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         if (selectedPet != null) {
@@ -251,6 +256,8 @@ fun AdoptionScreen(
                 messages = uiState.messages,
                 currentInput = uiState.currentInput,
                 pendingAttachment = uiState.pendingAttachment,
+                isUploading = uiState.isUploading,
+                isLoadingMessages = uiState.isLoadingMessages,
                 onInputChange = onInputChange,
                 onSendMessage = onSendMessage,
                 onRemovePendingAttachment = onRemovePendingAttachment,
@@ -274,7 +281,7 @@ fun AdoptionScreen(
                 modifier = Modifier.fillMaxWidth(),
                 preferredItemWidth = 220.dp,
                 itemSpacing = 10.dp,
-                contentPadding = PaddingValues(horizontal = 20.dp)
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp)
             ) { index ->
                 val pet = petsToShow[index]
                 val isActive = highlightedPetIndex == index
@@ -285,6 +292,7 @@ fun AdoptionScreen(
                 PetCard(
                     pet = pet,
                     modifier = Modifier
+                        .padding(vertical = 4.dp)
                         .graphicsLayer {
                             scaleX = scale
                             scaleY = scale
@@ -302,6 +310,8 @@ fun AdoptionScreen(
                 messages = uiState.messages,
                 currentInput = uiState.currentInput,
                 pendingAttachment = uiState.pendingAttachment,
+                isUploading = uiState.isUploading,
+                isLoadingMessages = uiState.isLoadingMessages,
                 onInputChange = onInputChange,
                 onSendMessage = onSendMessage,
                 onRemovePendingAttachment = onRemovePendingAttachment,

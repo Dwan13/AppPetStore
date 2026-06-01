@@ -1,26 +1,44 @@
 {
   "project_info": {
-    "project_number": "873866275765",
-    "project_id": "react-test-879a2",
-    "storage_bucket": "react-test-879a2.firebasestorage.app"
+    "project_number": "1003439074308",
+    "project_id": "apppetstore-b12fc",
+    "storage_bucket": "apppetstore-b12fc.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:873866275765:android:a4dc079c586e41cd6607fc",
+        "mobilesdk_app_id": "1:1003439074308:android:eeab1d491241ed48499951",
         "android_client_info": {
           "package_name": "com.project.apppetstore"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1003439074308-iqjjv0tp73luq4c05o9ghcgmsq6lgjf3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.project.apppetstore",
+            "certificate_hash": "8dda67fe41de39ceb0a53caf200afad6977a49d3"
+          }
+        },
+        {
+          "client_id": "1003439074308-edhrhud53r4hmld0e9pqrvfhfjm9q7bu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyDG5c0VA8qon4d0JlfdfG_sPTu5QOK8wCs"
+          "current_key": "AIzaSyDc5WC13A_rg6U327H40PjqGo9-Zvr3Tis"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1003439074308-edhrhud53r4hmld0e9pqrvfhfjm9q7bu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

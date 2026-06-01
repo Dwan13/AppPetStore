@@ -43,10 +43,12 @@ fun PetDetailScreen(
     onAdoptClick: () -> Unit,
     onBack: () -> Unit,
 
-    // 👇 conectar chat real
+    // conectar chat real
     messages: List<ChatMessage>,
     currentInput: String,
     pendingAttachment: ChatAttachment?,
+    isUploading: Boolean = false,
+    isLoadingMessages: Boolean = false,
     onInputChange: (String) -> Unit,
     onSendMessage: () -> Unit,
     onRemovePendingAttachment: () -> Unit,
@@ -70,7 +72,7 @@ fun PetDetailScreen(
                 .verticalScroll(scrollState)
                 .padding(bottom = 80.dp)
         ) {
-            Box(modifier = Modifier.height(260.dp).fillMaxWidth()) {
+            Box(modifier = Modifier.height(280.dp).fillMaxWidth()) {
                 when {
                     pet.imageUrl != null -> {
                         // Si hay URL, usa AsyncImage
@@ -140,10 +142,11 @@ fun PetDetailScreen(
             Spacer(modifier = Modifier.height(12.dp))
             Box(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .padding(horizontal = 12.dp)
                     .shadow(4.dp, RoundedCornerShape(18.dp))
-                    .background(Color.White, shape = RoundedCornerShape(18.dp))
-                    .border(1.dp, Color(0xFFE5E7EB), shape = RoundedCornerShape(18.dp))
+                    .background(Color.White, RoundedCornerShape(18.dp))
+                    .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(18.dp))
                     .padding(18.dp)
             ) {
                 Column {
@@ -181,6 +184,8 @@ fun PetDetailScreen(
                 messages = messages,
                 currentInput = currentInput,
                 pendingAttachment = pendingAttachment,
+                isUploading = isUploading,
+                isLoadingMessages = isLoadingMessages,
                 onInputChange = onInputChange,
                 onSendMessage = onSendMessage,
                 onRemovePendingAttachment = onRemovePendingAttachment,

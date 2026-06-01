@@ -8,12 +8,14 @@ enum class AttachmentType {
 
 data class ChatAttachment(
     val type: AttachmentType,
-    val uri: String
+    val uri: String          // URI local mientras se sube, URL de Storage después
 )
 
 data class ChatMessage(
-    val id: String,
-    val message: String,
-    val isUser: Boolean,
-    val attachment: ChatAttachment? = null
+    val id: String = "",
+    val message: String = "",
+    val isUser: Boolean = true,
+    val attachment: ChatAttachment? = null,
+    val timestamp: Long = System.currentTimeMillis(),
+    val senderId: String = ""
 )
