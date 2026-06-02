@@ -2,7 +2,6 @@ package com.project.apppetstore.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import coil3.compose.AsyncImage
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +33,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.project.apppetstore.R
 import com.project.apppetstore.data.model.Pet
 
 @Composable
@@ -58,11 +58,12 @@ fun PetCard(
                 .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
 
             when {
-                !pet.imageUrl.isNullOrBlank() -> AsyncImage(
-                    model              = pet.imageUrl,
+                !pet.imageUrl.isNullOrBlank() -> AppAsyncImage(
+                    imageUrl           = pet.imageUrl,
                     contentDescription = pet.name,
                     contentScale       = ContentScale.Crop,
-                    modifier           = imgModifier
+                    modifier           = imgModifier,
+                    placeholderRes     = R.drawable.ic_user_round
                 )
                 image != null -> Image(
                     painter            = image,

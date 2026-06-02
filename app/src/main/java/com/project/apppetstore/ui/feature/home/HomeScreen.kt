@@ -1,6 +1,7 @@
 package com.project.apppetstore.ui.feature.home
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
@@ -44,6 +46,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -54,6 +57,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
+import coil3.request.ImageRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.project.apppetstore.R
@@ -65,6 +71,8 @@ import com.project.apppetstore.ui.components.SectionTitle
 import com.project.apppetstore.ui.components.ServiceCard
 import com.project.apppetstore.ui.components.ServiceCardSkeleton
 import com.project.apppetstore.ui.feature.map.MapScreen
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,6 +88,7 @@ fun HomeScreen(
 ) {
     val context     = LocalContext.current
     val fusedClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val imageLoader = remember { SingletonImageLoader.get(context) }
 
     // ── Obtener ubicación si el permiso ya está concedido ─────────────────────
     fun tryFetchLocation() {
@@ -127,8 +136,38 @@ fun HomeScreen(
     // ── Estado local ──────────────────────────────────────────────────────────
     var showMapSheet by remember { mutableStateOf(false) }
     val mapSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val homeListState = rememberLazyListState()
+    val filterListState = rememberLazyListState()
 
     var highlightedPetIndex by rememberSaveable { mutableStateOf(0) }
+
+    // Prefetch progresivo: adelanta imágenes cercanas al scroll para reducir parpadeos.
+    LaunchedEffect(homeListState, uiState.isLoading, uiState.isServicesLoading, uiState.services) {
+        if (uiState.isLoading || uiState.isServicesLoading || uiState.services.isEmpty()) {
+            return@LaunchedEffect
+        }
+        val serviceStartIndex = 6 // Índice del primer item de servicios cuando ya cargaron filtros.
+        snapshotFlow { homeListState.firstVisibleItemIndex }
+            .map { firstVisibleIndex -> (firstVisibleIndex - serviceStartIndex).coerceAtLeast(0) }
+            .distinctUntilChanged()
+            .collect { firstServiceIndex ->
+                val urls = uiState.services
+                    .drop(firstServiceIndex)
+                    .take(5)
+                    .mapNotNull { it.imageUrl?.takeIf(String::isNotBlank) }
+                prefetchImageUrls(context, imageLoader, urls)
+            }
+    }
+
+    // Prefetch alrededor de la mascota activa para suavizar el carrusel.
+    LaunchedEffect(highlightedPetIndex, uiState.pets) {
+        if (uiState.pets.isEmpty()) return@LaunchedEffect
+        val urls = uiState.pets
+            .drop(highlightedPetIndex.coerceAtLeast(0))
+            .take(4)
+            .mapNotNull { it.imageUrl?.takeIf(String::isNotBlank) }
+        prefetchImageUrls(context, imageLoader, urls)
+    }
 
     // Título dinámico de la sección de servicios
     val nearbyTitle = when {
@@ -141,6 +180,7 @@ fun HomeScreen(
 
     // ── Contenido principal ───────────────────────────────────────────────────
     LazyColumn(
+        state               = homeListState,
         modifier            = modifier,
         contentPadding      = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -162,8 +202,11 @@ fun HomeScreen(
 
         if (!uiState.isServicesLoading) {
             item {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(uiState.filters) { filter ->
+                LazyRow(
+                    state = filterListState,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(uiState.filters, key = { it }) { filter ->
                         val icon = when (filter) {
                             "Clinicas"    -> painterResource(R.drawable.ic_stethoscope)
                             "A domicilio" -> painterResource(R.drawable.ic_house)
@@ -273,6 +316,18 @@ fun HomeScreen(
                 }
             )
         }
+    }
+}
+
+private fun prefetchImageUrls(context: Context, imageLoader: ImageLoader, urls: List<String>) {
+    urls.distinct().forEach { url ->
+        imageLoader.enqueue(
+            ImageRequest.Builder(context)
+                .data(url)
+                .memoryCacheKey(url)
+                .diskCacheKey(url)
+                .build()
+        )
     }
 }
 

@@ -74,9 +74,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.compose.AsyncImage
+import com.project.apppetstore.R
 import com.project.apppetstore.data.model.AttachmentType
 import com.project.apppetstore.data.model.Pet
+import com.project.apppetstore.ui.components.AppAsyncImage
 import com.project.apppetstore.ui.components.ChatSection
 import com.project.apppetstore.ui.components.PetCard
 import com.project.apppetstore.ui.feature.favorites.FavoritesViewModel
@@ -570,14 +571,13 @@ private fun ShakeDiscoverBottomSheet(
                 contentAlignment = Alignment.Center
             ) {
                 when {
-                    pet.imageUrl != null ->
-                        AsyncImage(
-                            model = pet.imageUrl,
+                    !pet.imageUrl.isNullOrBlank() ->
+                        AppAsyncImage(
+                            imageUrl = pet.imageUrl,
                             contentDescription = pet.name,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.size(140.dp).clip(CircleShape),
-                            fallback = rememberVectorPainter(Icons.Default.Face),
-                            error = rememberVectorPainter(Icons.Default.Face)
+                            placeholderRes = R.drawable.ic_user_round
                         )
                     pet.imageRes != null -> {
                         androidx.compose.foundation.Image(
