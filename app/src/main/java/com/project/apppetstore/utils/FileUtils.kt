@@ -71,3 +71,22 @@ fun createVideoOnMoviesFolder(name: String, context: Context): Uri? {
         null
     }
 }
+
+fun createVideoRecordingFile(name: String, context: Context): File {
+    val movieDir = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
+        ?: context.filesDir
+    if (!movieDir.exists()) {
+        movieDir.mkdirs()
+    }
+    return File.createTempFile(name, ".mp4", movieDir)
+}
+
+fun createAudioRecordingFile(name: String, context: Context): File {
+    val musicDir = context.getExternalFilesDir(Environment.DIRECTORY_MUSIC)
+        ?: context.filesDir
+    if (!musicDir.exists()) {
+        musicDir.mkdirs()
+    }
+    return File.createTempFile(name, ".m4a", musicDir)
+}
+
