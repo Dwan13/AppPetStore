@@ -31,17 +31,17 @@ import com.project.apppetstore.ui.components.PetCard
 
 @Composable
 fun FavoritesScreen(
-    uiState          : FavoritesUiState,
-    onBack           : () -> Unit,
-    onFavoriteToggle : (String) -> Unit,
-    onPetClick       : (String) -> Unit = {},
-    modifier         : Modifier = Modifier
+    uiState: FavoritesUiState,
+    onBack: () -> Unit,
+    onFavoriteToggle: (String) -> Unit,
+    onPetClick: (String) -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
 
         // ── Top bar ──────────────────────────────────────────────────────────
         Row(
-            modifier          = Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -50,8 +50,8 @@ fun FavoritesScreen(
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Volver")
             }
             Text(
-                text       = "Favoritos",
-                style      = MaterialTheme.typography.titleLarge,
+                text = "Favoritos",
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
         }
@@ -62,29 +62,31 @@ fun FavoritesScreen(
         if (!uiState.isLoading && uiState.favoritePets.isEmpty()) {
             // Estado vacío
             Box(
-                modifier          = Modifier.fillMaxSize().padding(32.dp),
-                contentAlignment  = Alignment.Center
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(32.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Icon(
-                        imageVector        = Icons.Rounded.FavoriteBorder,
+                        imageVector = Icons.Rounded.FavoriteBorder,
                         contentDescription = null,
-                        tint               = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier           = Modifier.size(56.dp)
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(56.dp)
                     )
                     Text(
-                        text      = "Aún no tienes favoritos",
-                        style     = MaterialTheme.typography.titleMedium,
+                        text = "Aún no tienes favoritos",
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center
                     )
                     Text(
-                        text      = "Toca el corazón en cualquier mascota\npara guardarla aquí",
-                        style     = MaterialTheme.typography.bodyMedium,
-                        color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text = "Toca el corazón en cualquier mascota\npara guardarla aquí",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -92,19 +94,19 @@ fun FavoritesScreen(
         } else {
             // Grid de mascotas favoritas
             LazyVerticalGrid(
-                columns             = GridCells.Fixed(2),
-                modifier            = Modifier.fillMaxSize(),
-                contentPadding      = PaddingValues(16.dp),
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(uiState.favoritePets, key = { it.id }) { pet ->
                     PetCard(
-                        pet             = pet,
-                        image           = pet.imageRes?.let { painterResource(it) },
-                        isFavorite      = true,
+                        pet = pet,
+                        image = pet.imageRes?.let { painterResource(it) },
+                        isFavorite = true,
                         onFavoriteClick = { onFavoriteToggle(pet.id) },
-                        onClick         = { onPetClick(pet.id) }
+                        onClick = { onPetClick(pet.id) }
                     )
                 }
             }

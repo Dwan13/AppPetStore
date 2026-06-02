@@ -109,25 +109,25 @@ data class AdoptionRequest(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun MisMascotasScreen(
-    uiState          : PetsUiState,
-    onAddPet         : (name: String, species: String, age: String, gender: String, size: String, health: String, vaccines: String, requirements: String, traits: List<String>, photoUri: Uri?) -> Unit,
-    onUpdatePet      : (petId: String, name: String, species: String, age: String, gender: String, size: String, health: String, vaccines: String, requirements: String, traits: List<String>, photoUri: Uri?) -> Unit,
-    onDeletePet      : (petId: String) -> Unit,
-    onToggleAdoption : (petId: String) -> Unit,
-    onClearResult    : () -> Unit,
-    onBack           : () -> Unit,
+    uiState: PetsUiState,
+    onAddPet: (name: String, species: String, age: String, gender: String, size: String, health: String, vaccines: String, requirements: String, traits: List<String>, photoUri: Uri?) -> Unit,
+    onUpdatePet: (petId: String, name: String, species: String, age: String, gender: String, size: String, health: String, vaccines: String, requirements: String, traits: List<String>, photoUri: Uri?) -> Unit,
+    onDeletePet: (petId: String) -> Unit,
+    onToggleAdoption: (petId: String) -> Unit,
+    onClearResult: () -> Unit,
+    onBack: () -> Unit,
     onOpenAdoptionChat: (chatId: String) -> Unit = {},
-    modifier         : Modifier = Modifier
+    modifier: Modifier = Modifier
 ) {
-    val pets      = uiState.pets
+    val pets = uiState.pets
     val isLoading = uiState.isLoading
-    val isSaving  = uiState.isSaving
-    val result    = uiState.operationResult
+    val isSaving = uiState.isSaving
+    val result = uiState.operationResult
 
-    var showSheet   by remember { mutableStateOf(false) }
-    var editingPet  by remember { mutableStateOf<UserPet?>(null) }
+    var showSheet by remember { mutableStateOf(false) }
+    var editingPet by remember { mutableStateOf<UserPet?>(null) }
     var petToDelete by remember { mutableStateOf<UserPet?>(null) }
-    val sheetState  = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // ── Solicitudes de adopción (notificaciones tipo "pet") ─────────────────────
     var adoptionRequests by remember { mutableStateOf<List<AdoptionRequest>>(emptyList()) }
@@ -137,7 +137,7 @@ fun MisMascotasScreen(
     var waitingForSave by remember { mutableStateOf(false) }
     LaunchedEffect(isSaving) {
         if (waitingForSave && !isSaving) {
-            showSheet      = false
+            showSheet = false
             waitingForSave = false
         }
     }
@@ -169,10 +169,10 @@ fun MisMascotasScreen(
                             if (resolved) return@runCatching null
                             if (cId.isBlank()) return@runCatching null
                             AdoptionRequest(
-                                id        = doc.id,
-                                title     = doc.getString("title") ?: "Solicitud de adopción",
-                                message   = doc.getString("message") ?: "Nuevo mensaje",
-                                chatId    = cId,
+                                id = doc.id,
+                                title = doc.getString("title") ?: "Solicitud de adopción",
+                                message = doc.getString("message") ?: "Nuevo mensaje",
+                                chatId = cId,
                                 timestamp = doc.getLong("timestamp") ?: 0L
                             )
                         }.getOrNull()
@@ -195,11 +195,11 @@ fun MisMascotasScreen(
         modifier = modifier,
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick            = { editingPet = null; showSheet = true },
-                icon               = { Icon(Icons.Rounded.Add, contentDescription = null) },
-                text               = { Text("Agregar mascota") },
-                containerColor     = MaterialTheme.colorScheme.primary,
-                contentColor       = MaterialTheme.colorScheme.onPrimary
+                onClick = { editingPet = null; showSheet = true },
+                icon = { Icon(Icons.Rounded.Add, contentDescription = null) },
+                text = { Text("Agregar mascota") },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             )
         }
     ) { innerPadding ->
@@ -211,7 +211,7 @@ fun MisMascotasScreen(
         ) {
             // ── Top bar ──────────────────────────────────────────────────────
             Row(
-                modifier          = Modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 4.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -220,113 +220,116 @@ fun MisMascotasScreen(
                     Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Volver")
                 }
                 Text(
-                    text       = "Mis mascotas",
-                    style      = MaterialTheme.typography.titleLarge,
+                    text = "Mis mascotas",
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold
                 )
                 if (pets.isNotEmpty()) {
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text  = "(${pets.size})",
+                        text = "(${pets.size})",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
                 }
-             }
-             HorizontalDivider()
+            }
+            HorizontalDivider()
 
-             // ── Solicitudes de adopción (siempre visible para que el dueño la encuentre) ──
-             Column(
-                 modifier = Modifier
-                     .fillMaxWidth()
-                     .padding(horizontal = 16.dp, vertical = 16.dp),
-                 verticalArrangement = Arrangement.spacedBy(12.dp)
-             ) {
-                 Row(
-                     verticalAlignment = Alignment.CenterVertically,
-                     horizontalArrangement = Arrangement.spacedBy(8.dp)
-                 ) {
-                     Icon(
-                         imageVector = Icons.Rounded.ChatBubble,
-                         contentDescription = null,
-                         modifier = Modifier.size(20.dp),
-                         tint = MaterialTheme.colorScheme.primary
-                     )
-                     Text(
-                         text       = "Solicitudes de adopción",
-                         style      = MaterialTheme.typography.titleMedium,
-                         fontWeight = FontWeight.SemiBold
-                     )
-                     if (adoptionRequests.isNotEmpty()) {
-                         Box(
-                             modifier = Modifier
-                                 .size(24.dp)
-                                 .clip(CircleShape)
-                                 .background(MaterialTheme.colorScheme.error),
-                             contentAlignment = Alignment.Center
-                         ) {
-                             Text(
-                                 text       = adoptionRequests.size.toString(),
-                                 style      = MaterialTheme.typography.labelSmall,
-                                 color      = MaterialTheme.colorScheme.onError,
-                                 fontWeight = FontWeight.Bold
-                             )
-                         }
-                     }
-                 }
+            // ── Solicitudes de adopción (siempre visible para que el dueño la encuentre) ──
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.ChatBubble,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Solicitudes de adopción",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    if (adoptionRequests.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.error),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = adoptionRequests.size.toString(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onError,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
 
-                 when {
-                     isLoadingRequests -> {
-                         Row(
-                             verticalAlignment = Alignment.CenterVertically,
-                             horizontalArrangement = Arrangement.spacedBy(8.dp)
-                         ) {
-                             CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                             Text(
-                                 text = "Cargando solicitudes...",
-                                 style = MaterialTheme.typography.bodySmall,
-                                 color = MaterialTheme.colorScheme.onSurfaceVariant
-                             )
-                         }
-                     }
+                when {
+                    isLoadingRequests -> {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Text(
+                                text = "Cargando solicitudes...",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
 
-                     adoptionRequests.isEmpty() -> {
-                         Card(
-                             modifier = Modifier.fillMaxWidth(),
-                             colors = CardDefaults.cardColors(
-                                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                             )
-                         ) {
-                             Text(
-                                 text = "Aún no tienes solicitudes de adopción. Cuando alguien te escriba por una mascota, aparecerá aquí.",
-                                 style = MaterialTheme.typography.bodySmall,
-                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                 modifier = Modifier.padding(12.dp)
-                             )
-                         }
-                     }
+                    adoptionRequests.isEmpty() -> {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            )
+                        ) {
+                            Text(
+                                text = "Aún no tienes solicitudes de adopción. Cuando alguien te escriba por una mascota, aparecerá aquí.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+                    }
 
-                     else -> {
-                         LazyColumn(
-                             verticalArrangement = Arrangement.spacedBy(8.dp),
-                             modifier = Modifier.fillMaxWidth()
-                         ) {
-                             items(adoptionRequests, key = { it.id }) { request ->
-                                 AdoptionRequestCard(
-                                     request = request,
-                                     onClick = { onOpenAdoptionChat(request.chatId) }
-                                 )
-                             }
-                         }
-                     }
-                 }
-             }
-             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                    else -> {
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items(adoptionRequests, key = { it.id }) { request ->
+                                AdoptionRequestCard(
+                                    request = request,
+                                    onClick = { onOpenAdoptionChat(request.chatId) }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             when {
                 isLoading -> {
                     Box(
-                        modifier         = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(
@@ -335,7 +338,7 @@ fun MisMascotasScreen(
                         ) {
                             CircularProgressIndicator()
                             Text(
-                                text  = "Cargando mascotas…",
+                                text = "Cargando mascotas…",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -345,7 +348,7 @@ fun MisMascotasScreen(
 
                 pets.isEmpty() -> {
                     Box(
-                        modifier         = Modifier
+                        modifier = Modifier
                             .fillMaxSize()
                             .padding(32.dp),
                         contentAlignment = Alignment.Center
@@ -361,15 +364,15 @@ fun MisMascotasScreen(
                                 tint = MaterialTheme.colorScheme.outlineVariant
                             )
                             Text(
-                                text       = "Sin mascotas registradas",
-                                style      = MaterialTheme.typography.titleMedium,
+                                text = "Sin mascotas registradas",
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
-                                textAlign  = TextAlign.Center
+                                textAlign = TextAlign.Center
                             )
                             Text(
-                                text      = "Toca el botón para agregar\ntu primera mascota",
-                                style     = MaterialTheme.typography.bodyMedium,
-                                color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                                text = "Toca el botón para agregar\ntu primera mascota",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -378,20 +381,20 @@ fun MisMascotasScreen(
 
                 else -> {
                     LazyVerticalGrid(
-                        columns               = GridCells.Fixed(2),
-                        modifier              = Modifier
+                        columns = GridCells.Fixed(2),
+                        modifier = Modifier
                             .fillMaxSize()
                             .padding(horizontal = 12.dp),
-                        contentPadding        = PaddingValues(top = 16.dp, bottom = 100.dp),
+                        contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp),
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalArrangement   = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         items(pets, key = { it.id }) { pet ->
                             MisMascotasPetCard(
-                                pet              = pet,
-                                isTogglingAdopt  = pet.id in uiState.togglingAdoptionIds,
-                                onEdit           = { editingPet = pet; showSheet = true },
-                                onDelete         = { petToDelete = pet },
+                                pet = pet,
+                                isTogglingAdopt = pet.id in uiState.togglingAdoptionIds,
+                                onEdit = { editingPet = pet; showSheet = true },
+                                onDelete = { petToDelete = pet },
                                 onToggleAdoption = { onToggleAdoption(pet.id) }
                             )
                         }
@@ -404,7 +407,7 @@ fun MisMascotasScreen(
     // ── Diálogo de resultado Firebase ─────────────────────────────────────────
     if (result != null) {
         val isSuccess = result is PetOperationResult.Success
-        val msg       = when (result) {
+        val msg = when (result) {
             is PetOperationResult.Success -> result.message
             is PetOperationResult.Failure -> result.message
         }
@@ -417,27 +420,27 @@ fun MisMascotasScreen(
                     contentDescription = null,
                     modifier = Modifier.size(40.dp),
                     tint = if (isSuccess) MaterialTheme.colorScheme.primary
-                           else MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.error
                 )
             },
             title = {
                 Text(
-                    text       = if (isSuccess) "¡Operación exitosa!" else "Algo salió mal",
+                    text = if (isSuccess) "¡Operación exitosa!" else "Algo salió mal",
                     fontWeight = FontWeight.Bold,
-                    textAlign  = TextAlign.Center
+                    textAlign = TextAlign.Center
                 )
             },
             text = {
                 Text(
-                    text      = msg,
+                    text = msg,
                     textAlign = TextAlign.Center,
-                    style     = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium
                 )
             },
             confirmButton = {
                 Button(
                     onClick = onClearResult,
-                    colors  = ButtonDefaults.buttonColors(
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = if (isSuccess)
                             MaterialTheme.colorScheme.primary
                         else
@@ -454,8 +457,8 @@ fun MisMascotasScreen(
     petToDelete?.let { pet ->
         AlertDialog(
             onDismissRequest = { petToDelete = null },
-            title   = { Text("Eliminar mascota") },
-            text    = { Text("¿Seguro que quieres eliminar a ${pet.name}?") },
+            title = { Text("Eliminar mascota") },
+            text = { Text("¿Seguro que quieres eliminar a ${pet.name}?") },
             confirmButton = {
                 TextButton(onClick = { onDeletePet(pet.id); petToDelete = null }) {
                     Text("Eliminar", color = MaterialTheme.colorScheme.error)
@@ -471,18 +474,41 @@ fun MisMascotasScreen(
     if (showSheet) {
         ModalBottomSheet(
             onDismissRequest = { if (!isSaving) showSheet = false },
-            sheetState       = sheetState
+            sheetState = sheetState
         ) {
             MisMascotasFormSheet(
-                pet          = editingPet,
+                pet = editingPet,
                 existingPets = pets,
-                isSaving     = isSaving,
-                onSave       = { name, species, age, gender, size, health, vaccines, requirements, traits, photoUri ->
+                isSaving = isSaving,
+                onSave = { name, species, age, gender, size, health, vaccines, requirements, traits, photoUri ->
                     waitingForSave = true
                     if (editingPet == null)
-                        onAddPet(name, species, age, gender, size, health, vaccines, requirements, traits, photoUri)
+                        onAddPet(
+                            name,
+                            species,
+                            age,
+                            gender,
+                            size,
+                            health,
+                            vaccines,
+                            requirements,
+                            traits,
+                            photoUri
+                        )
                     else
-                        onUpdatePet(editingPet!!.id, name, species, age, gender, size, health, vaccines, requirements, traits, photoUri)
+                        onUpdatePet(
+                            editingPet!!.id,
+                            name,
+                            species,
+                            age,
+                            gender,
+                            size,
+                            health,
+                            vaccines,
+                            requirements,
+                            traits,
+                            photoUri
+                        )
                 },
                 onCancel = { if (!isSaving) showSheet = false }
             )
@@ -490,20 +516,18 @@ fun MisMascotasScreen(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Tarjeta de mascota
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Tarjeta de mascota
+ 
 @Composable
 private fun MisMascotasPetCard(
-    pet              : UserPet,
-    isTogglingAdopt  : Boolean,
-    onEdit           : () -> Unit,
-    onDelete         : () -> Unit,
-    onToggleAdoption : () -> Unit
+    pet: UserPet,
+    isTogglingAdopt: Boolean,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    onToggleAdoption: () -> Unit
 ) {
     ElevatedCard(
-        shape     = MaterialTheme.shapes.large,
+        shape = MaterialTheme.shapes.large,
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
@@ -519,14 +543,14 @@ private fun MisMascotasPetCard(
             ) {
                 if (!pet.photoUri.isNullOrBlank()) {
                     AsyncImage(
-                        model              = pet.photoUri,
+                        model = pet.photoUri,
                         contentDescription = pet.name,
-                        contentScale       = ContentScale.Crop,
-                        modifier           = Modifier.fillMaxSize()
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
                 } else {
                     Text(
-                        text  = pet.name.take(1).uppercase(),
+                        text = pet.name.take(1).uppercase(),
                         style = MaterialTheme.typography.displaySmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -536,11 +560,11 @@ private fun MisMascotasPetCard(
             Spacer(Modifier.height(8.dp))
 
             Text(
-                text       = pet.name,
+                text = pet.name,
                 fontWeight = FontWeight.Bold,
-                fontSize   = 15.sp,
-                maxLines   = 1,
-                overflow   = TextOverflow.Ellipsis
+                fontSize = 15.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
 
             Row(
@@ -554,9 +578,9 @@ private fun MisMascotasPetCard(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text     = "${pet.species}${if (pet.age.isNotBlank()) " · ${pet.age}" else ""}",
-                    style    = MaterialTheme.typography.bodySmall,
-                    color    = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = "${pet.species}${if (pet.age.isNotBlank()) " · ${pet.age}" else ""}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -565,7 +589,9 @@ private fun MisMascotasPetCard(
             if (pet.gender.isNotBlank() || pet.size.isNotBlank()) {
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = listOfNotNull(pet.gender.takeIf { it.isNotBlank() }, pet.size.takeIf { it.isNotBlank() }).joinToString(" · "),
+                    text = listOfNotNull(
+                        pet.gender.takeIf { it.isNotBlank() },
+                        pet.size.takeIf { it.isNotBlank() }).joinToString(" · "),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -576,7 +602,7 @@ private fun MisMascotasPetCard(
             if (pet.traits.isNotEmpty()) {
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text  = pet.traits.take(2).joinToString(", "),
+                    text = pet.traits.take(2).joinToString(", "),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
@@ -589,45 +615,45 @@ private fun MisMascotasPetCard(
             // ── Botón "Dar en adopción" ──────────────────────────────────────
             val isAdoption = pet.isAvailableForAdoption
             Surface(
-                onClick      = { if (!isTogglingAdopt) onToggleAdoption() },
-                shape        = MaterialTheme.shapes.small,
-                color        = when {
+                onClick = { if (!isTogglingAdopt) onToggleAdoption() },
+                shape = MaterialTheme.shapes.small,
+                color = when {
                     isTogglingAdopt -> MaterialTheme.colorScheme.surfaceVariant
-                    isAdoption      -> MaterialTheme.colorScheme.primaryContainer
-                    else            -> MaterialTheme.colorScheme.surfaceVariant
+                    isAdoption -> MaterialTheme.colorScheme.primaryContainer
+                    else -> MaterialTheme.colorScheme.surfaceVariant
                 },
-                modifier     = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
-                    modifier              = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
-                    verticalAlignment     = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     if (isTogglingAdopt) {
                         CircularProgressIndicator(
-                            modifier    = Modifier.size(13.dp),
+                            modifier = Modifier.size(13.dp),
                             strokeWidth = 1.5.dp,
-                            color       = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary
                         )
                     } else {
                         Icon(
-                            imageVector        = if (isAdoption) Icons.Rounded.Favorite
-                                                 else Icons.Rounded.FavoriteBorder,
+                            imageVector = if (isAdoption) Icons.Rounded.Favorite
+                            else Icons.Rounded.FavoriteBorder,
                             contentDescription = null,
-                            modifier           = Modifier.size(13.dp),
-                            tint               = if (isAdoption) MaterialTheme.colorScheme.primary
-                                                 else MaterialTheme.colorScheme.onSurfaceVariant
+                            modifier = Modifier.size(13.dp),
+                            tint = if (isAdoption) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Text(
-                        text  = when {
+                        text = when {
                             isTogglingAdopt -> if (isAdoption) "Retirando…" else "Publicando…"
-                            isAdoption      -> "En adopción"
-                            else            -> "Dar en adopción"
+                            isAdoption -> "En adopción"
+                            else -> "Dar en adopción"
                         },
                         style = MaterialTheme.typography.labelSmall,
                         color = if (isAdoption || isTogglingAdopt) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.onSurfaceVariant
+                        else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -636,13 +662,13 @@ private fun MisMascotasPetCard(
 
             Row(
                 horizontalArrangement = Arrangement.End,
-                modifier              = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
-                IconButton(onClick = onEdit,   modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
                     Icon(
                         Icons.Rounded.Edit,
                         contentDescription = "Editar",
-                        tint     = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -650,7 +676,7 @@ private fun MisMascotasPetCard(
                     Icon(
                         Icons.Rounded.Delete,
                         contentDescription = "Eliminar",
-                        tint     = MaterialTheme.colorScheme.error,
+                        tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -659,41 +685,39 @@ private fun MisMascotasPetCard(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Formulario de mascota (Bottom Sheet)
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Formulario de mascota (Bottom Sheet)
+ 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun MisMascotasFormSheet(
-    pet          : UserPet?,
-    existingPets : List<UserPet>,
-    isSaving     : Boolean,
-    onSave       : (name: String, species: String, age: String, gender: String, size: String, health: String, vaccines: String, requirements: String, traits: List<String>, photoUri: Uri?) -> Unit,
-    onCancel     : () -> Unit
+    pet: UserPet?,
+    existingPets: List<UserPet>,
+    isSaving: Boolean,
+    onSave: (name: String, species: String, age: String, gender: String, size: String, health: String, vaccines: String, requirements: String, traits: List<String>, photoUri: Uri?) -> Unit,
+    onCancel: () -> Unit
 ) {
-    var name    by remember(pet) { mutableStateOf(pet?.name ?: "") }
+    var name by remember(pet) { mutableStateOf(pet?.name ?: "") }
     var species by remember(pet) {
         mutableStateOf(
             pet?.species?.let { if (it in MM_SPECIES_OPTIONS) it else MM_SPECIES_OPTIONS[0] }
                 ?: MM_SPECIES_OPTIONS[0]
         )
     }
-    var age           by remember(pet) { mutableStateOf(pet?.age ?: "") }
-    var gender        by remember(pet) {
+    var age by remember(pet) { mutableStateOf(pet?.age ?: "") }
+    var gender by remember(pet) {
         mutableStateOf(pet?.gender?.takeIf { it in MM_GENDER_OPTIONS } ?: MM_GENDER_OPTIONS[0])
     }
-    var size          by remember(pet) {
+    var size by remember(pet) {
         mutableStateOf(pet?.size?.takeIf { it in MM_SIZE_OPTIONS } ?: MM_SIZE_OPTIONS[1])
     }
-    var health        by remember(pet) { mutableStateOf(pet?.health ?: "") }
-    var vaccines      by remember(pet) { mutableStateOf(pet?.vaccines ?: "") }
-    var requirements  by remember(pet) { mutableStateOf(pet?.requirements ?: "") }
+    var health by remember(pet) { mutableStateOf(pet?.health ?: "") }
+    var vaccines by remember(pet) { mutableStateOf(pet?.vaccines ?: "") }
+    var requirements by remember(pet) { mutableStateOf(pet?.requirements ?: "") }
     val selectedTraits = remember(pet) {
         mutableStateListOf<String>().apply { addAll(pet?.traits ?: emptyList()) }
     }
     var selectedPhotoUri by remember { mutableStateOf<Uri?>(null) }
-    var nameError        by remember { mutableStateOf<String?>(null) }
+    var nameError by remember { mutableStateOf<String?>(null) }
 
     val photoPicker = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia()
@@ -708,8 +732,8 @@ private fun MisMascotasFormSheet(
     ) {
 
         Text(
-            text       = if (pet == null) "Agregar mascota" else "Editar mascota",
-            style      = MaterialTheme.typography.titleLarge,
+            text = if (pet == null) "Agregar mascota" else "Editar mascota",
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
 
@@ -730,37 +754,37 @@ private fun MisMascotasFormSheet(
             val photoToShow = selectedPhotoUri?.toString() ?: pet?.photoUri
             if (!photoToShow.isNullOrBlank()) {
                 AsyncImage(
-                    model              = photoToShow,
+                    model = photoToShow,
                     contentDescription = null,
-                    contentScale       = ContentScale.Crop,
-                    modifier           = Modifier.fillMaxSize()
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
                 )
             } else {
                 Icon(
-                    painter            = painterResource(R.drawable.ic_user_round),
+                    painter = painterResource(R.drawable.ic_user_round),
                     contentDescription = "Elegir foto",
-                    tint               = MaterialTheme.colorScheme.primary,
-                    modifier           = Modifier.size(36.dp)
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(36.dp)
                 )
             }
         }
         Text(
-            text     = "Toca para cambiar la foto",
-            style    = MaterialTheme.typography.labelSmall,
-            color    = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = "Toca para cambiar la foto",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
         // ── Nombre ────────────────────────────────────────────────────────────
         OutlinedTextField(
-            value         = name,
+            value = name,
             onValueChange = { name = it; nameError = null },
-            label         = { Text("Nombre *") },
-            modifier      = Modifier.fillMaxWidth(),
-            shape         = MaterialTheme.shapes.medium,
-            singleLine    = true,
-            enabled       = !isSaving,
-            isError       = nameError != null,
+            label = { Text("Nombre *") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            singleLine = true,
+            enabled = !isSaving,
+            isError = nameError != null,
             supportingText = nameError?.let { msg ->
                 { Text(msg, color = MaterialTheme.colorScheme.error) }
             }
@@ -773,9 +797,9 @@ private fun MisMascotasFormSheet(
                 MM_SPECIES_OPTIONS.forEachIndexed { index, option ->
                     SegmentedButton(
                         selected = species == option,
-                        onClick  = { if (!isSaving) species = option },
-                        shape    = SegmentedButtonDefaults.itemShape(index, MM_SPECIES_OPTIONS.size),
-                        label    = {
+                        onClick = { if (!isSaving) species = option },
+                        shape = SegmentedButtonDefaults.itemShape(index, MM_SPECIES_OPTIONS.size),
+                        label = {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -795,13 +819,13 @@ private fun MisMascotasFormSheet(
 
         // ── Edad ──────────────────────────────────────────────────────────────
         OutlinedTextField(
-            value         = age,
+            value = age,
             onValueChange = { age = it },
-            label         = { Text("Edad (ej: 2 años)") },
-            modifier      = Modifier.fillMaxWidth(),
-            shape         = MaterialTheme.shapes.medium,
-            singleLine    = true,
-            enabled       = !isSaving
+            label = { Text("Edad (ej: 2 años)") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            singleLine = true,
+            enabled = !isSaving
         )
 
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -869,13 +893,13 @@ private fun MisMascotasFormSheet(
         Text("Características", style = MaterialTheme.typography.labelLarge)
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement   = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             MM_AVAILABLE_TRAITS.forEach { trait ->
                 val selected = trait in selectedTraits
                 FilterChip(
                     selected = selected,
-                    onClick  = {
+                    onClick = {
                         if (!isSaving) {
                             if (selected) selectedTraits.remove(trait)
                             else selectedTraits.add(trait)
@@ -888,14 +912,14 @@ private fun MisMascotasFormSheet(
 
         // ── Botones ───────────────────────────────────────────────────────────
         Row(
-            modifier              = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             SecondaryButton(
-                text     = "Cancelar",
-                onClick  = onCancel,
+                text = "Cancelar",
+                onClick = onCancel,
                 modifier = Modifier.weight(1f),
-                enabled  = !isSaving
+                enabled = !isSaving
             )
             Button(
                 onClick = {
@@ -904,12 +928,14 @@ private fun MisMascotasFormSheet(
                         trimmedName.isBlank() -> {
                             nameError = "El nombre no puede estar vacío"
                         }
+
                         existingPets.any { e ->
                             e.name.trim().equals(trimmedName, ignoreCase = true) &&
-                            e.id != (pet?.id ?: "")
+                                    e.id != (pet?.id ?: "")
                         } -> {
                             nameError = "Ya tienes una mascota llamada \"$trimmedName\""
                         }
+
                         else -> onSave(
                             trimmedName,
                             species,
@@ -925,12 +951,12 @@ private fun MisMascotasFormSheet(
                     }
                 },
                 modifier = Modifier.weight(1f),
-                enabled  = name.isNotBlank() && !isSaving
+                enabled = name.isNotBlank() && !isSaving
             ) {
                 if (isSaving) {
                     CircularProgressIndicator(
-                        modifier    = Modifier.size(18.dp),
-                        color       = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(18.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
                         strokeWidth = 2.dp
                     )
                 } else {
@@ -943,10 +969,8 @@ private fun MisMascotasFormSheet(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Tarjeta de solicitud de adopción
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Tarjeta de solicitud de adopción
+ 
 @Composable
 private fun AdoptionRequestCard(
     request: AdoptionRequest,
@@ -983,18 +1007,18 @@ private fun AdoptionRequestCard(
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     Text(
-                        text       = request.title,
-                        style      = MaterialTheme.typography.titleSmall,
+                        text = request.title,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
-                        maxLines   = 1,
-                        overflow   = TextOverflow.Ellipsis
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text       = request.message,
-                        style      = MaterialTheme.typography.bodySmall,
-                        color      = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines   = 2,
-                        overflow   = TextOverflow.Ellipsis
+                        text = request.message,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

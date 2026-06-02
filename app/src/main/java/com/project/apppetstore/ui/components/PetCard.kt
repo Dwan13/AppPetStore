@@ -38,16 +38,16 @@ import com.project.apppetstore.data.model.Pet
 
 @Composable
 fun PetCard(
-    pet             : Pet,
-    modifier        : Modifier = Modifier,
-    onClick         : (() -> Unit)? = null,
-    image           : Painter? = null,
-    isFavorite      : Boolean = false,
-    onFavoriteClick : (() -> Unit)? = null
+    pet: Pet,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    image: Painter? = null,
+    isFavorite: Boolean = false,
+    onFavoriteClick: (() -> Unit)? = null
 ) {
     ElevatedCard(
-        modifier  = if (onClick != null) modifier.clickable { onClick() } else modifier,
-        shape     = MaterialTheme.shapes.large,
+        modifier = if (onClick != null) modifier.clickable { onClick() } else modifier,
+        shape = MaterialTheme.shapes.large,
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
         // ── Imagen con corazón superpuesto ────────────────────────────────────
@@ -59,26 +59,28 @@ fun PetCard(
 
             when {
                 !pet.imageUrl.isNullOrBlank() -> AppAsyncImage(
-                    imageUrl           = pet.imageUrl,
+                    imageUrl = pet.imageUrl,
                     contentDescription = pet.name,
-                    contentScale       = ContentScale.Crop,
-                    modifier           = imgModifier,
-                    placeholderRes     = R.drawable.ic_user_round
+                    contentScale = ContentScale.Crop,
+                    modifier = imgModifier,
+                    placeholderRes = R.drawable.ic_user_round
                 )
+
                 image != null -> Image(
-                    painter            = image,
+                    painter = image,
                     contentDescription = pet.name,
-                    contentScale       = ContentScale.Crop,
-                    modifier           = imgModifier
+                    contentScale = ContentScale.Crop,
+                    modifier = imgModifier
                 )
+
                 else -> Box(
-                    modifier         = imgModifier.background(MaterialTheme.colorScheme.primaryContainer),
+                    modifier = imgModifier.background(MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text       = pet.name.take(1),
-                        style      = MaterialTheme.typography.displaySmall,
-                        color      = MaterialTheme.colorScheme.primary,
+                        text = pet.name.take(1),
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -87,7 +89,7 @@ fun PetCard(
             // Corazón — solo visible si se pasa el callback
             if (onFavoriteClick != null) {
                 Box(
-                    modifier         = Modifier
+                    modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(6.dp)
                         .size(32.dp)
@@ -96,17 +98,17 @@ fun PetCard(
                     contentAlignment = Alignment.Center
                 ) {
                     IconButton(
-                        onClick  = onFavoriteClick,
+                        onClick = onFavoriteClick,
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
-                            imageVector        = if (isFavorite) Icons.Rounded.Favorite
-                                                 else Icons.Rounded.FavoriteBorder,
+                            imageVector = if (isFavorite) Icons.Rounded.Favorite
+                            else Icons.Rounded.FavoriteBorder,
                             contentDescription = if (isFavorite) "Quitar de favoritos"
-                                                 else "Agregar a favoritos",
-                            tint               = if (isFavorite) Color(0xFFEF5350)
-                                                 else Color.White,
-                            modifier           = Modifier.size(18.dp)
+                            else "Agregar a favoritos",
+                            tint = if (isFavorite) Color(0xFFEF5350)
+                            else Color.White,
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }
@@ -115,28 +117,33 @@ fun PetCard(
 
         // ── Info ──────────────────────────────────────────────────────────────
         Column(
-            modifier            = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             Text(
-                text  = pet.name,
+                text = pet.name,
                 style = MaterialTheme.typography.titleMedium
             )
             Text(
-                text  = pet.breed,
+                text = pet.breed,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(4.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 SuggestionChip(
-                    onClick  = {},
-                    label    = { Text(text = pet.age,    style = MaterialTheme.typography.labelSmall) },
+                    onClick = {},
+                    label = { Text(text = pet.age, style = MaterialTheme.typography.labelSmall) },
                     modifier = Modifier.height(24.dp)
                 )
                 SuggestionChip(
-                    onClick  = {},
-                    label    = { Text(text = pet.gender, style = MaterialTheme.typography.labelSmall) },
+                    onClick = {},
+                    label = {
+                        Text(
+                            text = pet.gender,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    },
                     modifier = Modifier.height(24.dp)
                 )
             }

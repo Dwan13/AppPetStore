@@ -31,7 +31,7 @@ class SettingsRepository private constructor(context: Context) {
 
     fun setDarkTheme(dark: Boolean?) {
         if (dark == null) prefs.edit().remove("dark_theme").apply()
-        else              prefs.edit().putBoolean("dark_theme", dark).apply()
+        else prefs.edit().putBoolean("dark_theme", dark).apply()
         _darkTheme.value = dark
     }
 
@@ -58,7 +58,8 @@ class SettingsRepository private constructor(context: Context) {
 
     // ── Singleton ─────────────────────────────────────────────────────────────
     companion object {
-        @Volatile private var INSTANCE: SettingsRepository? = null
+        @Volatile
+        private var INSTANCE: SettingsRepository? = null
 
         fun getInstance(context: Context): SettingsRepository =
             INSTANCE ?: synchronized(this) {

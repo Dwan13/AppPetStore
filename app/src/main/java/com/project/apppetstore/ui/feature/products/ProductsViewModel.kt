@@ -12,10 +12,10 @@ import com.project.apppetstore.data.repository.MockPetShopRepository
 import kotlinx.coroutines.launch
 
 data class ProductsUiState(
-    val filters       : List<String>   = emptyList(),
-    val selectedFilter: String         = "Todos",
-    val products      : List<Product>  = emptyList(),
-    val isLoading     : Boolean        = true
+    val filters: List<String> = emptyList(),
+    val selectedFilter: String = "Todos",
+    val products: List<Product> = emptyList(),
+    val isLoading: Boolean = true
 )
 
 class ProductsViewModel(app: Application) : AndroidViewModel(app) {
@@ -34,8 +34,8 @@ class ProductsViewModel(app: Application) : AndroidViewModel(app) {
                 MockPetShopRepository.getProducts()
             }
             uiState = ProductsUiState(
-                filters   = listOf("Todos") + allProducts.map { it.category }.distinct(),
-                products  = allProducts,
+                filters = listOf("Todos") + allProducts.map { it.category }.distinct(),
+                products = allProducts,
                 isLoading = false
             )
         }
@@ -45,10 +45,10 @@ class ProductsViewModel(app: Application) : AndroidViewModel(app) {
 
     fun onFilterSelected(filter: String) {
         val filtered = if (filter == "Todos") allProducts
-                       else allProducts.filter { it.category == filter }
+        else allProducts.filter { it.category == filter }
         uiState = uiState.copy(
             selectedFilter = filter,
-            products       = filtered
+            products = filtered
         )
     }
 }

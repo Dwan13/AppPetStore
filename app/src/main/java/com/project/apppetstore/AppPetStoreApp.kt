@@ -85,25 +85,25 @@ import com.project.apppetstore.ui.theme.AppPetStoreTheme
 fun AppPetShopApp() {
 
     // ── ViewModels de nivel app ───────────────────────────────────────────────
-    val profileViewModel      : ProfileViewModel       = viewModel()
-    val favoritesViewModel    : FavoritesViewModel     = viewModel()
-    val ordersViewModel       : OrdersViewModel        = viewModel()
-    val petsViewModel         : PetsViewModel          = viewModel()
-    val settingsViewModel     : SettingsViewModel      = viewModel()
+    val profileViewModel: ProfileViewModel = viewModel()
+    val favoritesViewModel: FavoritesViewModel = viewModel()
+    val ordersViewModel: OrdersViewModel = viewModel()
+    val petsViewModel: PetsViewModel = viewModel()
+    val settingsViewModel: SettingsViewModel = viewModel()
     val notificationsViewModel: NotificationsViewModel = viewModel()
 
-    val authState    by profileViewModel.uiState.collectAsState()
+    val authState by profileViewModel.uiState.collectAsState()
     val settingsState = settingsViewModel.uiState
-    val notifsState   = notificationsViewModel.uiState
+    val notifsState = notificationsViewModel.uiState
 
     // ── Tema dinámico ─────────────────────────────────────────────────────────
     AppPetStoreTheme(
         darkTheme = settingsState.darkTheme ?: isSystemInDarkTheme()
     ) {
 
-        val navController  = rememberNavController()
+        val navController = rememberNavController()
         val backStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute   = backStackEntry?.destination?.route ?: ""
+        val currentRoute = backStackEntry?.destination?.route ?: ""
 
         // ── Solicitar permiso POST_NOTIFICATIONS (Android 13+ / API 33) ──────
         val notifPermLauncher = rememberLauncherForActivityResult(
@@ -121,12 +121,12 @@ fun AppPetShopApp() {
         // Punto de entrada: Home si hay sesión activa, Profile (pantalla guest)
         // si no la hay. El ViewModel ya resuelve auth.currentUser sincrónicamente.
         val startDestination = if (authState.isLoggedIn) AppDestination.Home.route
-                               else AppDestination.Profile.route
+        else AppDestination.Profile.route
 
         // ── Guard de navegación ───────────────────────────────────────────────
         LaunchedEffect(authState.isLoggedIn) {
-            val onAuthScreen  = currentRoute == AppDestination.Login.route ||
-                                currentRoute == AppDestination.Register.route
+            val onAuthScreen = currentRoute == AppDestination.Login.route ||
+                    currentRoute == AppDestination.Register.route
             val onGuestScreen = currentRoute == AppDestination.Profile.route
 
             when {
@@ -154,23 +154,23 @@ fun AppPetShopApp() {
         )
 
         val isAuthRoute = currentRoute == AppDestination.Login.route ||
-                          currentRoute == AppDestination.Register.route
+                currentRoute == AppDestination.Register.route
 
         // La barra superior y la navegación inferior solo se muestran cuando
         // el usuario está autenticado Y no está en una pantalla de flujo específico
         // que usa su propia barra (detail, checkout, mapa, etc.).
         val hideScaffoldBars = !authState.isLoggedIn ||
-                          isAuthRoute ||
-                          currentRoute.startsWith("product/") ||
-                          currentRoute.startsWith("checkout/") ||
-                          currentRoute.startsWith("appointment") ||
-                          currentRoute.startsWith("deliverySchedule") ||
-                          currentRoute.startsWith("map") ||
-                          currentRoute.startsWith("favorites") ||
-                          currentRoute.startsWith("orders") ||
-                          currentRoute.startsWith("notifications") ||
-                          currentRoute.startsWith("settings") ||
-                          currentRoute.startsWith("mis_mascotas")
+                isAuthRoute ||
+                currentRoute.startsWith("product/") ||
+                currentRoute.startsWith("checkout/") ||
+                currentRoute.startsWith("appointment") ||
+                currentRoute.startsWith("deliverySchedule") ||
+                currentRoute.startsWith("map") ||
+                currentRoute.startsWith("favorites") ||
+                currentRoute.startsWith("orders") ||
+                currentRoute.startsWith("notifications") ||
+                currentRoute.startsWith("settings") ||
+                currentRoute.startsWith("mis_mascotas")
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -190,18 +190,18 @@ fun AppPetShopApp() {
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text       = "AP",
-                                        color      = MaterialTheme.colorScheme.onPrimary,
-                                        fontSize   = 14.sp,
+                                        text = "AP",
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text       = "AppPetStore",
-                                    color      = MaterialTheme.colorScheme.primary,
+                                    text = "AppPetStore",
+                                    color = MaterialTheme.colorScheme.primary,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize   = 16.sp
+                                    fontSize = 16.sp
                                 )
                             }
                         },
@@ -219,7 +219,7 @@ fun AppPetShopApp() {
                                         if (notifsState.unreadCount > 0) {
                                             Badge {
                                                 Text(
-                                                    text  = if (notifsState.unreadCount > 9) "9+" else "${notifsState.unreadCount}",
+                                                    text = if (notifsState.unreadCount > 9) "9+" else "${notifsState.unreadCount}",
                                                     style = MaterialTheme.typography.labelSmall
                                                 )
                                             }
@@ -227,9 +227,9 @@ fun AppPetShopApp() {
                                     }
                                 ) {
                                     Icon(
-                                        painter            = painterResource(R.drawable.ic_bell_dot),
+                                        painter = painterResource(R.drawable.ic_bell_dot),
                                         contentDescription = "Notificaciones",
-                                        tint               = MaterialTheme.colorScheme.onBackground
+                                        tint = MaterialTheme.colorScheme.onBackground
                                     )
                                 }
                             }
@@ -246,7 +246,7 @@ fun AppPetShopApp() {
                             navController.navigate(navRoute) {
                                 popUpTo(navController.graph.startDestinationId) { saveState = true }
                                 launchSingleTop = true
-                                restoreState    = true
+                                restoreState = true
                             }
                         }
                     )
@@ -254,32 +254,32 @@ fun AppPetShopApp() {
             }
         ) { innerPadding ->
             NavHost(
-                navController    = navController,
+                navController = navController,
                 startDestination = startDestination,
-                modifier         = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding)
             ) {
 
                 // ── Login ─────────────────────────────────────────────────────
                 composable(AppDestination.Login.route) {
                     LoginScreen(
-                        uiState              = authState,
-                        onLoginWithEmail     = profileViewModel::loginWithEmail,
-                        onSignInWithGoogle   = profileViewModel::signInWithGoogle,
+                        uiState = authState,
+                        onLoginWithEmail = profileViewModel::loginWithEmail,
+                        onSignInWithGoogle = profileViewModel::signInWithGoogle,
                         onNavigateToRegister = { navController.navigate(AppDestination.Register.route) },
-                        onClearError         = profileViewModel::clearError
+                        onClearError = profileViewModel::clearError
                     )
                 }
 
                 // ── Register ──────────────────────────────────────────────────
                 composable(AppDestination.Register.route) {
                     RegisterScreen(
-                        uiState            = authState,
-                        onRegister         = { fullName, email, password ->
+                        uiState = authState,
+                        onRegister = { fullName, email, password ->
                             profileViewModel.registerWithEmail(fullName, email, password)
                         },
                         onSignInWithGoogle = profileViewModel::signInWithGoogle,
-                        onBackToLogin      = { navController.popBackStack() },
-                        onClearError       = profileViewModel::clearError
+                        onBackToLogin = { navController.popBackStack() },
+                        onClearError = profileViewModel::clearError
                     )
                 }
 
@@ -287,15 +287,25 @@ fun AppPetShopApp() {
                 composable(AppDestination.Home.route) {
                     val viewModel: HomeViewModel = viewModel()
                     HomeScreen(
-                        uiState             = viewModel.uiState,
+                        uiState = viewModel.uiState,
                         onLocationAvailable = viewModel::updateUserLocation,
-                        favoritePetIds      = favoritesViewModel.uiState.favoritePetIds,
-                        onFavoriteToggle    = favoritesViewModel::toggleFavorite,
-                        onScheduleService   = { service ->
+                        favoritePetIds = favoritesViewModel.uiState.favoritePetIds,
+                        onFavoriteToggle = favoritesViewModel::toggleFavorite,
+                        onScheduleService = { service ->
                             if (service.supportsDelivery) {
-                                navController.navigate(AppDestination.DeliverySchedule.createRoute(service.id, service.category))
+                                navController.navigate(
+                                    AppDestination.DeliverySchedule.createRoute(
+                                        service.id,
+                                        service.category
+                                    )
+                                )
                             } else {
-                                navController.navigate(AppDestination.Appointment.createRoute(service.id, service.category))
+                                navController.navigate(
+                                    AppDestination.Appointment.createRoute(
+                                        service.id,
+                                        service.category
+                                    )
+                                )
                             }
                         },
                         onPetClick = { petId ->
@@ -310,27 +320,32 @@ fun AppPetShopApp() {
 
                 // ── Delivery Schedule ─────────────────────────────────────────
                 composable(
-                    route     = AppDestination.DeliverySchedule.route,
+                    route = AppDestination.DeliverySchedule.route,
                     arguments = listOf(
-                        navArgument("serviceId")       { type = NavType.StringType; nullable = true; defaultValue = null },
-                        navArgument("serviceCategory") { type = NavType.StringType; nullable = true; defaultValue = null }
+                        navArgument("serviceId") {
+                            type = NavType.StringType; nullable = true; defaultValue = null
+                        },
+                        navArgument("serviceCategory") {
+                            type = NavType.StringType; nullable = true; defaultValue = null
+                        }
                     )
                 ) { backStack ->
-                    val serviceId       = backStack.arguments?.getString("serviceId")
+                    val serviceId = backStack.arguments?.getString("serviceId")
                     val serviceCategory = backStack.arguments?.getString("serviceCategory")
                     DeliveryScheduleScreen(
-                        serviceId       = serviceId,
+                        serviceId = serviceId,
                         serviceCategory = serviceCategory,
-                        onConfirm       = { destLat, destLng ->
-                            val service = MockPetShopRepository.getServices().find { it.id == serviceId }
+                        onConfirm = { destLat, destLng ->
+                            val service =
+                                MockPetShopRepository.getServices().find { it.id == serviceId }
                             navController.navigate(
                                 AppDestination.Map.createRoute(
                                     deliveryRequested = true,
-                                    serviceCategory   = serviceCategory,
-                                    destLat           = destLat,
-                                    destLng           = destLng,
-                                    originLat         = service?.lat?.takeIf { it != 0.0 },
-                                    originLng         = service?.lng?.takeIf { it != 0.0 }
+                                    serviceCategory = serviceCategory,
+                                    destLat = destLat,
+                                    destLng = destLng,
+                                    originLat = service?.lat?.takeIf { it != 0.0 },
+                                    originLng = service?.lng?.takeIf { it != 0.0 }
                                 )
                             )
                         }
@@ -339,23 +354,36 @@ fun AppPetShopApp() {
 
                 // ── Map ───────────────────────────────────────────────────────
                 composable(
-                    route     = AppDestination.Map.route,
+                    route = AppDestination.Map.route,
                     arguments = listOf(
-                        navArgument("deliveryRequested") { type = NavType.BoolType;   defaultValue = false },
-                        navArgument("serviceCategory")   { type = NavType.StringType; nullable = true; defaultValue = null },
-                        navArgument("destLat")           { type = NavType.StringType; nullable = true; defaultValue = null },
-                        navArgument("destLng")           { type = NavType.StringType; nullable = true; defaultValue = null },
-                        navArgument("originLat")         { type = NavType.StringType; nullable = true; defaultValue = null },
-                        navArgument("originLng")         { type = NavType.StringType; nullable = true; defaultValue = null }
+                        navArgument("deliveryRequested") {
+                            type = NavType.BoolType; defaultValue = false
+                        },
+                        navArgument("serviceCategory") {
+                            type = NavType.StringType; nullable = true; defaultValue = null
+                        },
+                        navArgument("destLat") {
+                            type = NavType.StringType; nullable = true; defaultValue = null
+                        },
+                        navArgument("destLng") {
+                            type = NavType.StringType; nullable = true; defaultValue = null
+                        },
+                        navArgument("originLat") {
+                            type = NavType.StringType; nullable = true; defaultValue = null
+                        },
+                        navArgument("originLng") {
+                            type = NavType.StringType; nullable = true; defaultValue = null
+                        }
                     )
                 ) { backStack ->
                     MapScreen(
-                        deliveryRequested = backStack.arguments?.getBoolean("deliveryRequested") ?: false,
-                        serviceCategory   = backStack.arguments?.getString("serviceCategory"),
-                        destLat           = backStack.arguments?.getString("destLat")?.toDoubleOrNull(),
-                        destLng           = backStack.arguments?.getString("destLng")?.toDoubleOrNull(),
-                        originLat         = backStack.arguments?.getString("originLat")?.toDoubleOrNull(),
-                        originLng         = backStack.arguments?.getString("originLng")?.toDoubleOrNull(),
+                        deliveryRequested = backStack.arguments?.getBoolean("deliveryRequested")
+                            ?: false,
+                        serviceCategory = backStack.arguments?.getString("serviceCategory"),
+                        destLat = backStack.arguments?.getString("destLat")?.toDoubleOrNull(),
+                        destLng = backStack.arguments?.getString("destLng")?.toDoubleOrNull(),
+                        originLat = backStack.arguments?.getString("originLat")?.toDoubleOrNull(),
+                        originLng = backStack.arguments?.getString("originLng")?.toDoubleOrNull(),
                         onBookAppointment = { service ->
                             navController.navigate(
                                 AppDestination.Appointment.createRoute(service.id, service.category)
@@ -363,7 +391,10 @@ fun AppPetShopApp() {
                         },
                         onRequestDelivery = { service ->
                             navController.navigate(
-                                AppDestination.DeliverySchedule.createRoute(service.id, service.category)
+                                AppDestination.DeliverySchedule.createRoute(
+                                    service.id,
+                                    service.category
+                                )
                             )
                         }
                     )
@@ -373,13 +404,23 @@ fun AppPetShopApp() {
                 composable(AppDestination.Services.route) {
                     val viewModel: ServicesViewModel = viewModel()
                     ServicesScreen(
-                        uiState           = viewModel.uiState,
-                        onFilterSelected  = viewModel::onFilterSelected,
+                        uiState = viewModel.uiState,
+                        onFilterSelected = viewModel::onFilterSelected,
                         onScheduleService = { service ->
                             if (service.supportsDelivery) {
-                                navController.navigate(AppDestination.DeliverySchedule.createRoute(service.id, service.category))
+                                navController.navigate(
+                                    AppDestination.DeliverySchedule.createRoute(
+                                        service.id,
+                                        service.category
+                                    )
+                                )
                             } else {
-                                navController.navigate(AppDestination.Appointment.createRoute(service.id, service.category))
+                                navController.navigate(
+                                    AppDestination.Appointment.createRoute(
+                                        service.id,
+                                        service.category
+                                    )
+                                )
                             }
                         }
                     )
@@ -387,16 +428,20 @@ fun AppPetShopApp() {
 
                 // ── Appointment ───────────────────────────────────────────────
                 composable(
-                    route     = AppDestination.Appointment.route,
+                    route = AppDestination.Appointment.route,
                     arguments = listOf(
-                        navArgument("serviceId")       { type = NavType.StringType; nullable = true; defaultValue = null },
-                        navArgument("serviceCategory") { type = NavType.StringType; nullable = true; defaultValue = null }
+                        navArgument("serviceId") {
+                            type = NavType.StringType; nullable = true; defaultValue = null
+                        },
+                        navArgument("serviceCategory") {
+                            type = NavType.StringType; nullable = true; defaultValue = null
+                        }
                     )
                 ) { backStack ->
                     AppointmentScreen(
-                        serviceId       = backStack.arguments?.getString("serviceId"),
+                        serviceId = backStack.arguments?.getString("serviceId"),
                         serviceCategory = backStack.arguments?.getString("serviceCategory"),
-                        onBack          = { navController.popBackStack() }
+                        onBack = { navController.popBackStack() }
                     )
                 }
 
@@ -404,46 +449,57 @@ fun AppPetShopApp() {
                 composable(AppDestination.Products.route) {
                     val viewModel: ProductsViewModel = viewModel()
                     ProductsScreen(
-                        uiState          = viewModel.uiState,
+                        uiState = viewModel.uiState,
                         onFilterSelected = viewModel::onFilterSelected,
-                        onProductClick   = { navController.navigate(AppDestination.ProductDetail.createRoute(it)) }
+                        onProductClick = {
+                            navController.navigate(
+                                AppDestination.ProductDetail.createRoute(
+                                    it
+                                )
+                            )
+                        }
                     )
                 }
 
                 // ── Product Detail ────────────────────────────────────────────
                 composable(
-                    route     = AppDestination.ProductDetail.route,
+                    route = AppDestination.ProductDetail.route,
                     arguments = listOf(navArgument("productId") { type = NavType.StringType })
                 ) { backStack ->
                     val viewModel = viewModel<ProductsViewModel>()
                     val productId = backStack.arguments?.getString("productId") ?: return@composable
-                    val product   = viewModel.getProductById(productId)         ?: return@composable
+                    val product = viewModel.getProductById(productId) ?: return@composable
                     ProductDetailScreen(
                         product = product,
-                        onBack  = { navController.popBackStack() },
+                        onBack = { navController.popBackStack() },
                         onBuyNow = { quantity ->
-                            navController.navigate(AppDestination.Checkout.createRoute(productId, quantity))
+                            navController.navigate(
+                                AppDestination.Checkout.createRoute(
+                                    productId,
+                                    quantity
+                                )
+                            )
                         }
                     )
                 }
 
                 // ── Checkout ──────────────────────────────────────────────────
                 composable(
-                    route     = AppDestination.Checkout.route,
+                    route = AppDestination.Checkout.route,
                     arguments = listOf(
                         navArgument("productId") { type = NavType.StringType },
-                        navArgument("quantity")  { type = NavType.IntType }
+                        navArgument("quantity") { type = NavType.IntType }
                     )
                 ) { backStack ->
                     val viewModel = viewModel<ProductsViewModel>()
                     val productId = backStack.arguments?.getString("productId") ?: return@composable
-                    val quantity  = backStack.arguments?.getInt("quantity")     ?: 1
-                    val product   = viewModel.getProductById(productId)         ?: return@composable
+                    val quantity = backStack.arguments?.getInt("quantity") ?: 1
+                    val product = viewModel.getProductById(productId) ?: return@composable
                     CheckoutScreen(
-                        product          = product,
-                        quantity         = quantity,
-                        onBack           = { navController.popBackStack() },
-                        onPlaceOrder     = ordersViewModel::placeOrder,
+                        product = product,
+                        quantity = quantity,
+                        onBack = { navController.popBackStack() },
+                        onPlaceOrder = ordersViewModel::placeOrder,
                         onOrderConfirmed = {
                             navController.navigate(AppDestination.Products.route) {
                                 popUpTo(AppDestination.Products.route) { inclusive = true }
@@ -454,15 +510,21 @@ fun AppPetShopApp() {
 
                 // ── Adoption (interesado: petId | dueño desde notif: chatId) ─────
                 composable(
-                    route     = "adoption?petId={petId}&chatId={chatId}",
+                    route = "adoption?petId={petId}&chatId={chatId}",
                     arguments = listOf(
-                        navArgument("petId")  { type = NavType.StringType; nullable = true; defaultValue = null },
-                        navArgument("chatId") { type = NavType.StringType; nullable = true; defaultValue = null }
+                        navArgument("petId") {
+                            type = NavType.StringType; nullable = true; defaultValue = null
+                        },
+                        navArgument("chatId") {
+                            type = NavType.StringType; nullable = true; defaultValue = null
+                        }
                     )
                 ) { backStack ->
                     val viewModel: AdoptionViewModel = viewModel()
-                    val petId  = backStack.arguments?.getString("petId").takeIf { !it.isNullOrBlank() }
-                    val chatId = backStack.arguments?.getString("chatId").takeIf { !it.isNullOrBlank() }
+                    val petId =
+                        backStack.arguments?.getString("petId").takeIf { !it.isNullOrBlank() }
+                    val chatId =
+                        backStack.arguments?.getString("chatId").takeIf { !it.isNullOrBlank() }
 
                     LaunchedEffect(Unit) { viewModel.loadPets() }
 
@@ -478,21 +540,21 @@ fun AppPetShopApp() {
                     }
 
                     AdoptionScreen(
-                        uiState                   = viewModel.uiState,
-                        onInputChange             = viewModel::onInputChange,
-                        onSendMessage             = viewModel::sendMessage,
-                        onDeleteMessage           = viewModel::deleteMessage,
-                        onAttachMedia             = viewModel::attachMedia,
+                        uiState = viewModel.uiState,
+                        onInputChange = viewModel::onInputChange,
+                        onSendMessage = viewModel::sendMessage,
+                        onDeleteMessage = viewModel::deleteMessage,
+                        onAttachMedia = viewModel::attachMedia,
                         onRemovePendingAttachment = viewModel::removePendingAttachment,
-                        selectedPetId             = petId,
-                        isOwnerViewingChat        = chatId != null,
+                        selectedPetId = petId,
+                        isOwnerViewingChat = chatId != null,
                         // El usuario interesado toca una mascota en el carrusel → navega a su detalle
-                        onPetSelected             = { selectedId ->
+                        onPetSelected = { selectedId ->
                             navController.navigate("adoption?petId=$selectedId") {
                                 launchSingleTop = true
                             }
                         },
-                        onNavigateToPet           = { discoveredPetId ->
+                        onNavigateToPet = { discoveredPetId ->
                             navController.navigate("adoption?petId=$discoveredPetId") {
                                 launchSingleTop = true
                             }
@@ -506,10 +568,10 @@ fun AppPetShopApp() {
                     val user = authState.user
                     if (user != null) {
                         ProfileScreenEnter(
-                            userName           = user.fullName,
-                            userEmail          = user.email,
-                            profilePhotoUri    = user.profilePhotoUri,
-                            pets               = petsViewModel.uiState.pets,
+                            userName = user.fullName,
+                            userEmail = user.email,
+                            profilePhotoUri = user.profilePhotoUri,
+                            pets = petsViewModel.uiState.pets,
                             onTakeProfilePhoto = { showProfilePhotoCamera = true },
                             onPickProfilePhoto = {
                                 profileImagePickerLauncher.launch(
@@ -519,10 +581,10 @@ fun AppPetShopApp() {
                             onMisMascotasClick = {
                                 navController.navigate(AppDestination.MisMascotas.route)
                             },
-                            onOrdersClick    = { navController.navigate(AppDestination.Orders.route) },
+                            onOrdersClick = { navController.navigate(AppDestination.Orders.route) },
                             onFavoritesClick = { navController.navigate(AppDestination.Favorites.route) },
-                            onSettingsClick  = { navController.navigate(AppDestination.Settings.route) },
-                            onLogout         = profileViewModel::logout
+                            onSettingsClick = { navController.navigate(AppDestination.Settings.route) },
+                            onLogout = profileViewModel::logout
                         )
                     } else {
                         // Pantalla de invitación al login para usuarios no autenticados.
@@ -539,11 +601,13 @@ fun AppPetShopApp() {
                 // ── Favorites ─────────────────────────────────────────────────
                 composable(AppDestination.Favorites.route) {
                     FavoritesScreen(
-                        uiState          = favoritesViewModel.uiState,
-                        onBack           = { navController.popBackStack() },
+                        uiState = favoritesViewModel.uiState,
+                        onBack = { navController.popBackStack() },
                         onFavoriteToggle = favoritesViewModel::toggleFavorite,
-                        onPetClick       = { petId ->
-                            navController.navigate("adoption?petId=$petId") { launchSingleTop = true }
+                        onPetClick = { petId ->
+                            navController.navigate("adoption?petId=$petId") {
+                                launchSingleTop = true
+                            }
                         }
                     )
                 }
@@ -552,17 +616,17 @@ fun AppPetShopApp() {
                 composable(AppDestination.Orders.route) {
                     OrdersScreen(
                         uiState = ordersViewModel.uiState,
-                        onBack  = { navController.popBackStack() }
+                        onBack = { navController.popBackStack() }
                     )
                 }
 
                 // ── Notifications ─────────────────────────────────────────────
                 composable(AppDestination.Notifications.route) {
                     NotificationsScreen(
-                        uiState             = notifsState,
-                        onBack              = { navController.popBackStack() },
-                        onMarkAllSeen       = notificationsViewModel::markAllSeen,
-                        lastSeenTimestamp   = notifsState.lastSeenTs,
+                        uiState = notifsState,
+                        onBack = { navController.popBackStack() },
+                        onMarkAllSeen = notificationsViewModel::markAllSeen,
+                        lastSeenTimestamp = notifsState.lastSeenTs,
                         onNotificationClick = { notif ->
                             // Solo las notificaciones de adopción con chatId navegan al chat
                             if (notif.type == "pet" && notif.chatId != null) {
@@ -577,49 +641,72 @@ fun AppPetShopApp() {
                 // ── Settings ──────────────────────────────────────────────────
                 composable(AppDestination.Settings.route) {
                     SettingsScreen(
-                        uiState             = settingsState,
-                        onBack              = { navController.popBackStack() },
-                        onSetSearchRadius   = settingsViewModel::setSearchRadius,
-                        onSetDarkTheme      = settingsViewModel::setDarkTheme,
-                        onSetNotifications  = settingsViewModel::setNotificationsEnabled
+                        uiState = settingsState,
+                        onBack = { navController.popBackStack() },
+                        onSetSearchRadius = settingsViewModel::setSearchRadius,
+                        onSetDarkTheme = settingsViewModel::setDarkTheme,
+                        onSetNotifications = settingsViewModel::setNotificationsEnabled
                     )
                 }
 
                 // ── Mis Mascotas ──────────────────────────────────────────────
                 composable(AppDestination.MisMascotas.route) {
                     MisMascotasScreen(
-                        uiState       = petsViewModel.uiState,
-                        onAddPet      = { name, species, age, gender, size, health, vaccines, requirements, traits, photoUri ->
-                            petsViewModel.addPet(name, species, age, gender, size, health, vaccines, requirements, traits, photoUri)
+                        uiState = petsViewModel.uiState,
+                        onAddPet = { name, species, age, gender, size, health, vaccines, requirements, traits, photoUri ->
+                            petsViewModel.addPet(
+                                name,
+                                species,
+                                age,
+                                gender,
+                                size,
+                                health,
+                                vaccines,
+                                requirements,
+                                traits,
+                                photoUri
+                            )
                             notificationsViewModel.addLocalNotification(
-                                title   = "Mascota registrada",
+                                title = "Mascota registrada",
                                 message = "$name ha sido añadida a tu perfil correctamente.",
-                                type    = "system"
+                                type = "system"
                             )
                         },
-                        onUpdatePet      = { petId, name, species, age, gender, size, health, vaccines, requirements, traits, photoUri ->
-                            petsViewModel.updatePet(petId, name, species, age, gender, size, health, vaccines, requirements, traits, photoUri)
+                        onUpdatePet = { petId, name, species, age, gender, size, health, vaccines, requirements, traits, photoUri ->
+                            petsViewModel.updatePet(
+                                petId,
+                                name,
+                                species,
+                                age,
+                                gender,
+                                size,
+                                health,
+                                vaccines,
+                                requirements,
+                                traits,
+                                photoUri
+                            )
                         },
-                        onDeletePet      = { petId ->
+                        onDeletePet = { petId ->
                             val petName = petsViewModel.uiState.pets
                                 .find { it.id == petId }?.name ?: "La mascota"
                             petsViewModel.deletePet(petId)
                             notificationsViewModel.addLocalNotification(
-                                title   = "Mascota eliminada",
+                                title = "Mascota eliminada",
                                 message = "$petName ha sido eliminada de tu perfil.",
-                                type    = "system"
+                                type = "system"
                             )
                         },
                         onToggleAdoption = { petId ->
                             petsViewModel.toggleAdoption(petId)
                         },
-                        onClearResult    = petsViewModel::clearOperationResult,
+                        onClearResult = petsViewModel::clearOperationResult,
                         onOpenAdoptionChat = { chatId ->
                             navController.navigate("adoption?chatId=$chatId") {
                                 launchSingleTop = true
                             }
                         },
-                        onBack           = { navController.popBackStack() }
+                        onBack = { navController.popBackStack() }
                     )
                 }
             }
@@ -627,7 +714,7 @@ fun AppPetShopApp() {
             // ── Diálogo de cámara de perfil ───────────────────────────────────
             if (showProfilePhotoCamera && authState.user != null) {
                 ProfilePhotoCameraDialog(
-                    onDismiss    = { showProfilePhotoCamera = false },
+                    onDismiss = { showProfilePhotoCamera = false },
                     onPhotoTaken = { photoUri ->
                         profileViewModel.uploadProfilePhoto(photoUri)
                         showProfilePhotoCamera = false

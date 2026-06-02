@@ -28,23 +28,24 @@ import com.project.apppetstore.data.model.Product
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckoutScreen(
-    product         : Product,
-    quantity        : Int,
-    onBack          : () -> Unit,
+    product: Product,
+    quantity: Int,
+    onBack: () -> Unit,
     onOrderConfirmed: () -> Unit,
-    onPlaceOrder    : (Order) -> Unit = {},
-    modifier        : Modifier = Modifier
+    onPlaceOrder: (Order) -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
-    val basePrice    = product.price.removePrefix("$").toDoubleOrNull() ?: 0.0
-    val unitPrice    = if (product.discount > 0) basePrice * (1 - product.discount / 100.0) else basePrice
-    val subtotal     = unitPrice * quantity
-    val shipping     = if (subtotal >= 30.0) 0.0 else 5.99
-    val total        = subtotal + shipping
+    val basePrice = product.price.removePrefix("$").toDoubleOrNull() ?: 0.0
+    val unitPrice =
+        if (product.discount > 0) basePrice * (1 - product.discount / 100.0) else basePrice
+    val subtotal = unitPrice * quantity
+    val shipping = if (subtotal >= 30.0) 0.0 else 5.99
+    val total = subtotal + shipping
 
-    var address      by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf("") }
     var addressError by remember { mutableStateOf(false) }
     var paymentMethod by remember { mutableStateOf("Efectivo") }
-    var isOrdering   by remember { mutableStateOf(false) }
+    var isOrdering by remember { mutableStateOf(false) }
     var orderSuccess by remember { mutableStateOf(false) }
 
     val paymentOptions = listOf("Efectivo", "Tarjeta de débito", "Tarjeta de crédito")
@@ -100,16 +101,16 @@ fun CheckoutScreen(
                                     isOrdering = true
                                     onPlaceOrder(
                                         Order(
-                                            productId       = product.id,
-                                            productName     = product.name,
+                                            productId = product.id,
+                                            productName = product.name,
                                             productImageUrl = product.imageUrl,
-                                            quantity        = quantity,
-                                            unitPrice       = unitPrice,
-                                            total           = total,
-                                            address         = address.trim(),
-                                            paymentMethod   = paymentMethod,
-                                            status          = "Confirmado",
-                                            timestamp       = System.currentTimeMillis()
+                                            quantity = quantity,
+                                            unitPrice = unitPrice,
+                                            total = total,
+                                            address = address.trim(),
+                                            paymentMethod = paymentMethod,
+                                            status = "Confirmado",
+                                            timestamp = System.currentTimeMillis()
                                         )
                                     )
                                     orderSuccess = true
@@ -128,7 +129,10 @@ fun CheckoutScreen(
                                     strokeWidth = 2.dp
                                 )
                             } else {
-                                Text("Confirmar pedido", style = MaterialTheme.typography.labelLarge)
+                                Text(
+                                    "Confirmar pedido",
+                                    style = MaterialTheme.typography.labelLarge
+                                )
                             }
                         }
                     }
@@ -319,8 +323,10 @@ private fun CheckoutPriceRow(
             .padding(vertical = 2.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(label, style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            label, style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         Text(
             value,
             style = MaterialTheme.typography.bodySmall,

@@ -21,26 +21,26 @@ import com.project.apppetstore.R
 object AppNotificationHelper {
 
     // ── Canales de notificación ───────────────────────────────────────────────
-    const val CHANNEL_AUTH     = "channel_auth"
-    const val CHANNEL_ORDERS   = "channel_orders"
-    const val CHANNEL_PETS     = "channel_pets"
-    const val CHANNEL_PROMOS   = "channel_promos"
+    const val CHANNEL_AUTH = "channel_auth"
+    const val CHANNEL_ORDERS = "channel_orders"
+    const val CHANNEL_PETS = "channel_pets"
+    const val CHANNEL_PROMOS = "channel_promos"
     const val CHANNEL_ADOPTION = "channel_adoption"
 
     // ── IDs fijos para eventos únicos ─────────────────────────────────────────
-    private const val ID_LOGIN    = 1001
+    private const val ID_LOGIN = 1001
     private const val ID_REGISTER = 1002
-    private const val ID_LOGOUT   = 1003
+    private const val ID_LOGOUT = 1003
 
     // ── Inicio de sesión ──────────────────────────────────────────────────────
 
     fun showLoginNotification(context: Context, userName: String) {
         show(
-            context   = context,
+            context = context,
             channelId = CHANNEL_AUTH,
-            id        = ID_LOGIN,
-            title     = "¡Bienvenido, $userName!",
-            message   = "Has iniciado sesión correctamente en AppPetStore."
+            id = ID_LOGIN,
+            title = "¡Bienvenido, $userName!",
+            message = "Has iniciado sesión correctamente en AppPetStore."
         )
     }
 
@@ -48,11 +48,11 @@ object AppNotificationHelper {
 
     fun showRegisterNotification(context: Context, userName: String) {
         show(
-            context   = context,
+            context = context,
             channelId = CHANNEL_AUTH,
-            id        = ID_REGISTER,
-            title     = "¡Cuenta creada!",
-            message   = "Bienvenido a AppPetStore, $userName. ¡Encuentra todo para tu mascota!"
+            id = ID_REGISTER,
+            title = "¡Cuenta creada!",
+            message = "Bienvenido a AppPetStore, $userName. ¡Encuentra todo para tu mascota!"
         )
     }
 
@@ -60,11 +60,11 @@ object AppNotificationHelper {
 
     fun showLogoutNotification(context: Context) {
         show(
-            context   = context,
+            context = context,
             channelId = CHANNEL_AUTH,
-            id        = ID_LOGOUT,
-            title     = "Sesión cerrada",
-            message   = "Has cerrado sesión correctamente. ¡Hasta pronto!"
+            id = ID_LOGOUT,
+            title = "Sesión cerrada",
+            message = "Has cerrado sesión correctamente. ¡Hasta pronto!"
         )
     }
 
@@ -72,11 +72,11 @@ object AppNotificationHelper {
 
     fun showOrderNotification(context: Context, productName: String) {
         show(
-            context   = context,
+            context = context,
             channelId = CHANNEL_ORDERS,
-            id        = uniqueId(),
-            title     = "Pedido confirmado",
-            message   = "Tu pedido de $productName fue recibido y está siendo procesado."
+            id = uniqueId(),
+            title = "Pedido confirmado",
+            message = "Tu pedido de $productName fue recibido y está siendo procesado."
         )
     }
 
@@ -84,11 +84,11 @@ object AppNotificationHelper {
 
     fun showPetAddedNotification(context: Context, petName: String) {
         show(
-            context   = context,
+            context = context,
             channelId = CHANNEL_PETS,
-            id        = uniqueId(),
-            title     = "Mascota registrada",
-            message   = "$petName ha sido añadida a tu perfil correctamente."
+            id = uniqueId(),
+            title = "Mascota registrada",
+            message = "$petName ha sido añadida a tu perfil correctamente."
         )
     }
 
@@ -96,11 +96,11 @@ object AppNotificationHelper {
 
     fun showPetDeletedNotification(context: Context, petName: String) {
         show(
-            context   = context,
+            context = context,
             channelId = CHANNEL_PETS,
-            id        = uniqueId(),
-            title     = "Mascota eliminada",
-            message   = "$petName ha sido eliminada de tu perfil."
+            id = uniqueId(),
+            title = "Mascota eliminada",
+            message = "$petName ha sido eliminada de tu perfil."
         )
     }
 
@@ -108,11 +108,11 @@ object AppNotificationHelper {
 
     fun showAdoptionInterestNotification(context: Context, petName: String) {
         show(
-            context   = context,
+            context = context,
             channelId = CHANNEL_ADOPTION,
-            id        = uniqueId(),
-            title     = "Nuevo interesado en $petName",
-            message   = "Alguien quiere adoptar a $petName. Abre el chat para responder."
+            id = uniqueId(),
+            title = "Nuevo interesado en $petName",
+            message = "Alguien quiere adoptar a $petName. Abre el chat para responder."
         )
     }
 
@@ -120,22 +120,22 @@ object AppNotificationHelper {
 
     fun showPromoNotification(context: Context, title: String, message: String) {
         show(
-            context   = context,
+            context = context,
             channelId = CHANNEL_PROMOS,
-            id        = uniqueId(),
-            title     = title,
-            message   = message
+            id = uniqueId(),
+            title = title,
+            message = message
         )
     }
 
     // ── Núcleo: construye y muestra la notificación ───────────────────────────
 
     private fun show(
-        context   : Context,
-        channelId : String,
-        id        : Int,
-        title     : String,
-        message   : String
+        context: Context,
+        channelId: String,
+        id: Int,
+        title: String,
+        message: String
     ) {
         // PendingIntent → abre MainActivity al tocar la notificación
         val intent = Intent(context, MainActivity::class.java).apply {
@@ -160,7 +160,7 @@ object AppNotificationHelper {
             .build()
 
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE)
-            as? NotificationManager ?: return
+                as? NotificationManager ?: return
 
         // Verificar permiso POST_NOTIFICATIONS (requerido desde Android 13 / API 33)
         if (ActivityCompat.checkSelfPermission(

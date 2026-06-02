@@ -42,15 +42,15 @@ import java.util.Locale
 
 @Composable
 fun OrdersScreen(
-    uiState  : OrdersUiState,
-    onBack   : () -> Unit,
-    modifier : Modifier = Modifier
+    uiState: OrdersUiState,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
 
         // ── Top bar ──────────────────────────────────────────────────────────
         Row(
-            modifier          = Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -59,8 +59,8 @@ fun OrdersScreen(
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Volver")
             }
             Text(
-                text       = "Mis pedidos",
-                style      = MaterialTheme.typography.titleLarge,
+                text = "Mis pedidos",
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
         }
@@ -71,7 +71,7 @@ fun OrdersScreen(
         when {
             uiState.isLoading -> {
                 Box(
-                    modifier         = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
@@ -80,7 +80,7 @@ fun OrdersScreen(
 
             uiState.orders.isEmpty() -> {
                 Box(
-                    modifier         = Modifier
+                    modifier = Modifier
                         .fillMaxSize()
                         .padding(32.dp),
                     contentAlignment = Alignment.Center
@@ -90,21 +90,21 @@ fun OrdersScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Icon(
-                            painter            = painterResource(R.drawable.ic_shopping_bag),
+                            painter = painterResource(R.drawable.ic_shopping_bag),
                             contentDescription = null,
-                            tint               = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier           = Modifier.size(56.dp)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(56.dp)
                         )
                         Text(
-                            text       = "Aún no tienes pedidos",
-                            style      = MaterialTheme.typography.titleMedium,
+                            text = "Aún no tienes pedidos",
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
-                            textAlign  = TextAlign.Center
+                            textAlign = TextAlign.Center
                         )
                         Text(
-                            text      = "Cuando realices una compra,\naparecerá aquí",
-                            style     = MaterialTheme.typography.bodyMedium,
-                            color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                            text = "Cuando realices una compra,\naparecerá aquí",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -113,8 +113,8 @@ fun OrdersScreen(
 
             else -> {
                 LazyColumn(
-                    modifier            = Modifier.fillMaxSize(),
-                    contentPadding      = PaddingValues(16.dp),
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(uiState.orders, key = { it.id }) { order ->
@@ -126,31 +126,29 @@ fun OrdersScreen(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Tarjeta de pedido
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Tarjeta de pedido
+ 
 @Composable
 private fun OrderCard(order: Order) {
     val dateStr = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
         .format(Date(order.timestamp))
 
     ElevatedCard(
-        modifier  = Modifier.fillMaxWidth(),
-        shape     = MaterialTheme.shapes.large,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
 
             // ── Encabezado: estado + fecha ────────────────────────────────────
             Row(
-                modifier              = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 OrderStatusChip(status = order.status)
                 Text(
-                    text  = dateStr,
+                    text = dateStr,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -160,7 +158,7 @@ private fun OrderCard(order: Order) {
 
             // ── Producto ──────────────────────────────────────────────────────
             Row(
-                verticalAlignment     = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Box(
@@ -174,14 +172,14 @@ private fun OrderCard(order: Order) {
                 ) {
                     if (!order.productImageUrl.isNullOrBlank()) {
                         AsyncImage(
-                            model              = order.productImageUrl,
+                            model = order.productImageUrl,
                             contentDescription = order.productName,
-                            contentScale       = ContentScale.Crop,
-                            modifier           = Modifier.fillMaxSize()
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
                         )
                     } else {
                         Text(
-                            text  = order.productName.take(1),
+                            text = order.productName.take(1),
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -190,28 +188,28 @@ private fun OrderCard(order: Order) {
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text       = order.productName,
-                        style      = MaterialTheme.typography.titleSmall,
+                        text = order.productName,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
-                        maxLines   = 2
+                        maxLines = 2
                     )
                     Text(
-                        text  = "Cantidad: ${order.quantity}",
+                        text = "Cantidad: ${order.quantity}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text  = order.paymentMethod,
+                        text = order.paymentMethod,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
                 Text(
-                    text       = "$${"%.2f".format(order.total)}",
-                    style      = MaterialTheme.typography.titleMedium,
+                    text = "$${"%.2f".format(order.total)}",
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color      = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
@@ -221,17 +219,17 @@ private fun OrderCard(order: Order) {
 
             // ── Dirección ─────────────────────────────────────────────────────
             Row(
-                verticalAlignment     = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Icon(
-                    painter            = painterResource(R.drawable.ic_map_pin),
+                    painter = painterResource(R.drawable.ic_map_pin),
                     contentDescription = null,
-                    tint               = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier           = Modifier.size(14.dp)
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(14.dp)
                 )
                 Text(
-                    text  = order.address,
+                    text = order.address,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -240,30 +238,28 @@ private fun OrderCard(order: Order) {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Chip de estado
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Chip de estado
+ 
 @Composable
 private fun OrderStatusChip(status: String) {
-    val bgColor   = when (status) {
-        "En camino"  -> MaterialTheme.colorScheme.tertiaryContainer
-        "Entregado"  -> MaterialTheme.colorScheme.primaryContainer
-        else         -> MaterialTheme.colorScheme.secondaryContainer
+    val bgColor = when (status) {
+        "En camino" -> MaterialTheme.colorScheme.tertiaryContainer
+        "Entregado" -> MaterialTheme.colorScheme.primaryContainer
+        else -> MaterialTheme.colorScheme.secondaryContainer
     }
     val textColor = when (status) {
-        "En camino"  -> MaterialTheme.colorScheme.onTertiaryContainer
-        "Entregado"  -> MaterialTheme.colorScheme.onPrimaryContainer
-        else         -> MaterialTheme.colorScheme.onSecondaryContainer
+        "En camino" -> MaterialTheme.colorScheme.onTertiaryContainer
+        "Entregado" -> MaterialTheme.colorScheme.onPrimaryContainer
+        else -> MaterialTheme.colorScheme.onSecondaryContainer
     }
     Surface(
         color = bgColor,
         shape = MaterialTheme.shapes.extraSmall
     ) {
         Text(
-            text     = status,
-            style    = MaterialTheme.typography.labelSmall,
-            color    = textColor,
+            text = status,
+            style = MaterialTheme.typography.labelSmall,
+            color = textColor,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
         )
     }

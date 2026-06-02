@@ -19,14 +19,14 @@ import com.project.apppetstore.ui.components.ServiceCardSkeleton
 
 @Composable
 fun ServicesScreen(
-    uiState          : ServicesUiState,
-    onFilterSelected : (String) -> Unit,
+    uiState: ServicesUiState,
+    onFilterSelected: (String) -> Unit,
     onScheduleService: (Service) -> Unit = {},
-    modifier         : Modifier = Modifier
+    modifier: Modifier = Modifier
 ) {
     LazyColumn(
-        modifier            = modifier,
-        contentPadding      = PaddingValues(16.dp),
+        modifier = modifier,
+        contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
@@ -40,8 +40,8 @@ fun ServicesScreen(
                     items(uiState.filters) { filter ->
                         FilterChip(
                             selected = filter == uiState.selectedFilter,
-                            onClick  = { onFilterSelected(filter) },
-                            label    = { Text(filter) }
+                            onClick = { onFilterSelected(filter) },
+                            label = { Text(filter) }
                         )
                     }
                 }
@@ -56,9 +56,9 @@ fun ServicesScreen(
         } else {
             items(uiState.services, key = { it.id }) { service ->
                 ServiceCard(
-                    service         = service,
+                    service = service,
                     onScheduleClick = { onScheduleService(service) },
-                    modifier        = Modifier
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 4.dp)
                 )

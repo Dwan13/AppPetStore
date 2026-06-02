@@ -1,5 +1,7 @@
 package com.project.apppetstore.ui.theme
+
 import androidx.compose.ui.graphics.Color
+
 val GreenPrimary = Color(0xFF5C9639)
 val GreenOnPrimary = Color(0xFFFFFFFF)
 val GreenPrimaryContainer = Color(0xFFEAFBC1)

@@ -15,8 +15,6 @@ import com.google.firebase.auth.GoogleAuthProvider
 
 // ─── Web Client ID ────────────────────────────────────────────────────────────
 // Firebase Console → Configuración del proyecto ⚙️ → General
-// → OAuth 2.0 web client → Client ID
-// ─────────────────────────────────────────────────────────────────────────────
 internal const val GOOGLE_WEB_CLIENT_ID =
     "1003439074308-edhrhud53r4hmld0e9pqrvfhfjm9q7bu.apps.googleusercontent.com"
 
@@ -32,9 +30,9 @@ internal const val GOOGLE_WEB_CLIENT_ID =
  * No hace nada si el usuario cancela.
  */
 suspend fun launchGoogleSignIn(
-    context  : Context,
+    context: Context,
     onSuccess: (AuthCredential) -> Unit,
-    onError  : (String) -> Unit
+    onError: (String) -> Unit
 ) {
     val credentialManager = CredentialManager.create(context)
 
@@ -76,7 +74,7 @@ suspend fun launchGoogleSignIn(
     } catch (_: NoCredentialException) {
         onError(
             "No hay cuentas de Google en este dispositivo.\n" +
-            "Ve a Ajustes → Cuentas y agrega una cuenta de Google."
+                    "Ve a Ajustes → Cuentas y agrega una cuenta de Google."
         )
     } catch (e: GetCredentialException) {
         onError(friendlyGoogleError(e))
@@ -85,17 +83,16 @@ suspend fun launchGoogleSignIn(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
+ 
 private fun handleCredentialResult(
     credential: androidx.credentials.Credential,
-    onSuccess : (AuthCredential) -> Unit,
-    onError   : (String) -> Unit
+    onSuccess: (AuthCredential) -> Unit,
+    onError: (String) -> Unit
 ) {
     if (credential is CustomCredential &&
         credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
     ) {
-        val googleCred   = GoogleIdTokenCredential.createFrom(credential.data)
+        val googleCred = GoogleIdTokenCredential.createFrom(credential.data)
         val authCredential = GoogleAuthProvider.getCredential(googleCred.idToken, null)
         onSuccess(authCredential)
     } else {
@@ -106,11 +103,12 @@ private fun handleCredentialResult(
 private fun friendlyGoogleError(e: GetCredentialException): String {
     val msg = e.message?.lowercase() ?: ""
     return when {
-        "interrupted"   in msg -> "El inicio de sesión fue interrumpido. Intenta de nuevo."
+        "interrupted" in msg -> "El inicio de sesión fue interrumpido. Intenta de nuevo."
         "configuration" in msg ||
-        "provider"      in msg -> "Google Sign-In no está configurado en este dispositivo."
-        "network"       in msg -> "Sin conexión a internet. Verifica tu red e intenta de nuevo."
-        "timeout"       in msg -> "Se agotó el tiempo de espera. Intenta de nuevo."
-        else                   -> "No se pudo iniciar sesión con Google. Intenta de nuevo."
+                "provider" in msg -> "Google Sign-In no está configurado en este dispositivo."
+
+        "network" in msg -> "Sin conexión a internet. Verifica tu red e intenta de nuevo."
+        "timeout" in msg -> "Se agotó el tiempo de espera. Intenta de nuevo."
+        else -> "No se pudo iniciar sesión con Google. Intenta de nuevo."
     }
 }

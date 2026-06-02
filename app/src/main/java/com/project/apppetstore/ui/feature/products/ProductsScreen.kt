@@ -53,8 +53,8 @@ fun ProductsScreen(
                     val filter = uiState.filters[index]
                     FilterChip(
                         selected = filter == uiState.selectedFilter,
-                        onClick  = { onFilterSelected(filter) },
-                        label    = { Text(filter) }
+                        onClick = { onFilterSelected(filter) },
+                        label = { Text(filter) }
                     )
                 }
             }
@@ -63,7 +63,7 @@ fun ProductsScreen(
         items(uiState.products, key = { it.id }) { product ->
             ProductCard(
                 product = product,
-                image   = product.imageRes?.let { painterResource(it) },
+                image = product.imageRes?.let { painterResource(it) },
                 onClick = { onProductClick(product.id) }
             )
         }

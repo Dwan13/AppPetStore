@@ -16,14 +16,14 @@ import com.project.apppetstore.data.repository.MockPetShopRepository
 import kotlinx.coroutines.launch
 
 data class FavoritesUiState(
-    val favoritePetIds : Set<String> = emptySet(),
-    val favoritePets   : List<Pet>   = emptyList(),
-    val isLoading      : Boolean     = true
+    val favoritePetIds: Set<String> = emptySet(),
+    val favoritePets: List<Pet> = emptyList(),
+    val isLoading: Boolean = true
 )
 
 class FavoritesViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val auth      = FirebaseAuth.getInstance()
+    private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
 
     /** Catálogo completo de mascotas — se carga una vez por sesión. */
@@ -91,8 +91,8 @@ class FavoritesViewModel(app: Application) : AndroidViewModel(app) {
                 val ids = (doc?.get("favoritePetIds") as? List<String>)?.toSet() ?: emptySet()
                 uiState = FavoritesUiState(
                     favoritePetIds = ids,
-                    favoritePets   = allPets.filter { it.id in ids },
-                    isLoading      = false
+                    favoritePets = allPets.filter { it.id in ids },
+                    isLoading = false
                 )
             }
     }
@@ -112,7 +112,7 @@ class FavoritesViewModel(app: Application) : AndroidViewModel(app) {
         // Optimistic update
         uiState = uiState.copy(
             favoritePetIds = updated,
-            favoritePets   = allPets.filter { it.id in updated }
+            favoritePets = allPets.filter { it.id in updated }
         )
         // Persist
         firestore.collection("users").document(uid)

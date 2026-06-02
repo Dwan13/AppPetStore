@@ -10,10 +10,10 @@ import com.project.apppetstore.data.repository.SettingsRepository
 import kotlinx.coroutines.launch
 
 data class SettingsUiState(
-    val searchRadiusKm       : Int      = 5,
-    val notificationsEnabled : Boolean  = true,
+    val searchRadiusKm: Int = 5,
+    val notificationsEnabled: Boolean = true,
     /** null = seguir sistema, false = claro, true = oscuro */
-    val darkTheme            : Boolean? = null
+    val darkTheme: Boolean? = null
 )
 
 class SettingsViewModel(app: Application) : AndroidViewModel(app) {
@@ -35,7 +35,15 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun setSearchRadius(km: Int)                { repo.setSearchRadius(km) }
-    fun setDarkTheme(dark: Boolean?)            { repo.setDarkTheme(dark) }
-    fun setNotificationsEnabled(enabled: Boolean) { repo.setNotificationsEnabled(enabled) }
+    fun setSearchRadius(km: Int) {
+        repo.setSearchRadius(km)
+    }
+
+    fun setDarkTheme(dark: Boolean?) {
+        repo.setDarkTheme(dark)
+    }
+
+    fun setNotificationsEnabled(enabled: Boolean) {
+        repo.setNotificationsEnabled(enabled)
+    }
 }

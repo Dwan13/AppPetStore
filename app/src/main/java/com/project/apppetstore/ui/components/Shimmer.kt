@@ -31,10 +31,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Motor del shimmer  (siguiendo MD3: animación lineal continua sobre superficies)
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Motor del shimmer  (siguiendo MD3: animación lineal continua sobre superficies)
+ 
 @Composable
 fun shimmerBrush(baseColor: Color? = null): Brush {
     val color = baseColor ?: MaterialTheme.colorScheme.surfaceVariant
@@ -48,9 +46,9 @@ fun shimmerBrush(baseColor: Color? = null): Brush {
     val transition = rememberInfiniteTransition(label = "shimmer")
     val translateAnim by transition.animateFloat(
         initialValue = 0f,
-        targetValue  = 1400f,
+        targetValue = 1400f,
         animationSpec = infiniteRepeatable(
-            animation  = tween(durationMillis = 1100, easing = LinearEasing),
+            animation = tween(durationMillis = 1100, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "shimmer_translate"
@@ -58,15 +56,13 @@ fun shimmerBrush(baseColor: Color? = null): Brush {
 
     return Brush.linearGradient(
         colors = shimmerColors,
-        start  = Offset(translateAnim - 500f, translateAnim - 500f),
-        end    = Offset(translateAnim, translateAnim)
+        start = Offset(translateAnim - 500f, translateAnim - 500f),
+        end = Offset(translateAnim, translateAnim)
     )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Elemento base
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Elemento base
+ 
 @Composable
 fun SkeletonBox(
     modifier: Modifier = Modifier,
@@ -79,10 +75,8 @@ fun SkeletonBox(
     )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Skeleton: ServiceCard
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Skeleton: ServiceCard
+ 
 @Composable
 fun ServiceCardSkeleton(modifier: Modifier = Modifier) {
     Row(
@@ -91,7 +85,7 @@ fun ServiceCardSkeleton(modifier: Modifier = Modifier) {
             .clip(MaterialTheme.shapes.large)
             .background(MaterialTheme.colorScheme.surfaceContainerLow)
             .padding(16.dp),
-        verticalAlignment   = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Avatar
@@ -99,19 +93,29 @@ fun ServiceCardSkeleton(modifier: Modifier = Modifier) {
 
         // Texto
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SkeletonBox(modifier = Modifier.fillMaxWidth(0.55f).height(14.dp), shape = RoundedCornerShape(4.dp))
-            SkeletonBox(modifier = Modifier.fillMaxWidth(0.38f).height(12.dp), shape = RoundedCornerShape(4.dp))
+            SkeletonBox(
+                modifier = Modifier
+                    .fillMaxWidth(0.55f)
+                    .height(14.dp),
+                shape = RoundedCornerShape(4.dp)
+            )
+            SkeletonBox(
+                modifier = Modifier
+                    .fillMaxWidth(0.38f)
+                    .height(12.dp),
+                shape = RoundedCornerShape(4.dp)
+            )
         }
 
         // Botón
-        SkeletonBox(modifier = Modifier.width(80.dp).height(36.dp), shape = RoundedCornerShape(50))
+        SkeletonBox(modifier = Modifier
+            .width(80.dp)
+            .height(36.dp), shape = RoundedCornerShape(50))
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Skeleton: PetCard  (208 dp de ancho en el carrusel)
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Skeleton: PetCard  (208 dp de ancho en el carrusel)
+ 
 @Composable
 fun PetCardSkeleton(modifier: Modifier = Modifier) {
     Column(
@@ -134,21 +138,39 @@ fun PetCardSkeleton(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            SkeletonBox(modifier = Modifier.fillMaxWidth(0.65f).height(16.dp), shape = RoundedCornerShape(4.dp))
-            SkeletonBox(modifier = Modifier.fillMaxWidth(0.45f).height(12.dp), shape = RoundedCornerShape(4.dp))
+            SkeletonBox(
+                modifier = Modifier
+                    .fillMaxWidth(0.65f)
+                    .height(16.dp),
+                shape = RoundedCornerShape(4.dp)
+            )
+            SkeletonBox(
+                modifier = Modifier
+                    .fillMaxWidth(0.45f)
+                    .height(12.dp),
+                shape = RoundedCornerShape(4.dp)
+            )
             Spacer(Modifier.height(4.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                SkeletonBox(modifier = Modifier.width(52.dp).height(24.dp), shape = RoundedCornerShape(50))
-                SkeletonBox(modifier = Modifier.width(52.dp).height(24.dp), shape = RoundedCornerShape(50))
+                SkeletonBox(
+                    modifier = Modifier
+                        .width(52.dp)
+                        .height(24.dp),
+                    shape = RoundedCornerShape(50)
+                )
+                SkeletonBox(
+                    modifier = Modifier
+                        .width(52.dp)
+                        .height(24.dp),
+                    shape = RoundedCornerShape(50)
+                )
             }
         }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Skeleton: ProductCard  (mitad de ancho en grid 2 columnas)
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Skeleton: ProductCard  (mitad de ancho en grid 2 columnas)
+ 
 @Composable
 fun ProductCardSkeleton(modifier: Modifier = Modifier) {
     Column(
@@ -171,22 +193,35 @@ fun ProductCardSkeleton(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            SkeletonBox(modifier = Modifier.fillMaxWidth(0.8f).height(14.dp), shape = RoundedCornerShape(4.dp))
-            SkeletonBox(modifier = Modifier.fillMaxWidth(0.5f).height(12.dp), shape = RoundedCornerShape(4.dp))
+            SkeletonBox(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .height(14.dp),
+                shape = RoundedCornerShape(4.dp)
+            )
+            SkeletonBox(
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+                    .height(12.dp),
+                shape = RoundedCornerShape(4.dp)
+            )
             Spacer(Modifier.height(4.dp))
-            SkeletonBox(modifier = Modifier.fillMaxWidth(0.42f).height(18.dp), shape = RoundedCornerShape(4.dp))
+            SkeletonBox(
+                modifier = Modifier
+                    .fillMaxWidth(0.42f)
+                    .height(18.dp),
+                shape = RoundedCornerShape(4.dp)
+            )
         }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Skeleton: burbuja de chat
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Skeleton: burbuja de chat
+ 
 @Composable
 fun ChatBubbleSkeleton(isUser: Boolean, modifier: Modifier = Modifier) {
     Row(
-        modifier            = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
     ) {
         SkeletonBox(
@@ -194,19 +229,17 @@ fun ChatBubbleSkeleton(isUser: Boolean, modifier: Modifier = Modifier) {
                 .fillMaxWidth(if (isUser) 0.62f else 0.52f)
                 .height(42.dp),
             shape = RoundedCornerShape(
-                topStart    = 16.dp,
-                topEnd      = 16.dp,
+                topStart = 16.dp,
+                topEnd = 16.dp,
                 bottomStart = if (isUser) 16.dp else 4.dp,
-                bottomEnd   = if (isUser) 4.dp  else 16.dp
+                bottomEnd = if (isUser) 4.dp else 16.dp
             )
         )
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Skeleton completo: HomeScreen
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Skeleton completo: HomeScreen
+ 
 @Composable
 fun HomeContentSkeleton(modifier: Modifier = Modifier) {
     Column(
@@ -214,7 +247,12 @@ fun HomeContentSkeleton(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         // Título
-        SkeletonBox(modifier = Modifier.fillMaxWidth(0.48f).height(28.dp), shape = RoundedCornerShape(6.dp))
+        SkeletonBox(
+            modifier = Modifier
+                .fillMaxWidth(0.48f)
+                .height(28.dp),
+            shape = RoundedCornerShape(6.dp)
+        )
 
         // Banner del mapa
         Row(
@@ -223,13 +261,26 @@ fun HomeContentSkeleton(modifier: Modifier = Modifier) {
                 .clip(MaterialTheme.shapes.large)
                 .background(MaterialTheme.colorScheme.surfaceContainerLow)
                 .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment   = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             SkeletonBox(modifier = Modifier.size(52.dp), shape = CircleShape)
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                SkeletonBox(modifier = Modifier.fillMaxWidth(0.65f).height(16.dp), shape = RoundedCornerShape(4.dp))
-                SkeletonBox(modifier = Modifier.fillMaxWidth(0.88f).height(12.dp), shape = RoundedCornerShape(4.dp))
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.65f)
+                        .height(16.dp),
+                    shape = RoundedCornerShape(4.dp)
+                )
+                SkeletonBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.88f)
+                        .height(12.dp),
+                    shape = RoundedCornerShape(4.dp)
+                )
             }
             SkeletonBox(modifier = Modifier.size(20.dp), shape = CircleShape)
         }
@@ -237,12 +288,22 @@ fun HomeContentSkeleton(modifier: Modifier = Modifier) {
         // Filtros
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             repeat(3) {
-                SkeletonBox(modifier = Modifier.width(74.dp).height(32.dp), shape = RoundedCornerShape(50))
+                SkeletonBox(
+                    modifier = Modifier
+                        .width(74.dp)
+                        .height(32.dp),
+                    shape = RoundedCornerShape(50)
+                )
             }
         }
 
         // Título sección mascotas
-        SkeletonBox(modifier = Modifier.fillMaxWidth(0.45f).height(20.dp), shape = RoundedCornerShape(4.dp))
+        SkeletonBox(
+            modifier = Modifier
+                .fillMaxWidth(0.45f)
+                .height(20.dp),
+            shape = RoundedCornerShape(4.dp)
+        )
 
         // Pet cards (2 en fila)
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -251,17 +312,20 @@ fun HomeContentSkeleton(modifier: Modifier = Modifier) {
         }
 
         // Título sección servicios
-        SkeletonBox(modifier = Modifier.fillMaxWidth(0.5f).height(20.dp), shape = RoundedCornerShape(4.dp))
+        SkeletonBox(
+            modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .height(20.dp),
+            shape = RoundedCornerShape(4.dp)
+        )
 
         // Service cards
         repeat(3) { ServiceCardSkeleton() }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Skeleton completo: ProductsScreen
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Skeleton completo: ProductsScreen
+ 
 @Composable
 fun ProductsGridSkeleton(modifier: Modifier = Modifier) {
     Column(
@@ -269,12 +333,22 @@ fun ProductsGridSkeleton(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         // Título
-        SkeletonBox(modifier = Modifier.fillMaxWidth(0.35f).height(28.dp), shape = RoundedCornerShape(6.dp))
+        SkeletonBox(
+            modifier = Modifier
+                .fillMaxWidth(0.35f)
+                .height(28.dp),
+            shape = RoundedCornerShape(6.dp)
+        )
 
         // Filtros
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             repeat(4) {
-                SkeletonBox(modifier = Modifier.width(70.dp).height(32.dp), shape = RoundedCornerShape(50))
+                SkeletonBox(
+                    modifier = Modifier
+                        .width(70.dp)
+                        .height(32.dp),
+                    shape = RoundedCornerShape(50)
+                )
             }
         }
 
@@ -288,10 +362,8 @@ fun ProductsGridSkeleton(modifier: Modifier = Modifier) {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Skeleton: mensajes de chat
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Skeleton: mensajes de chat
+ 
 @Composable
 fun ChatMessagesSkeleton(modifier: Modifier = Modifier) {
     Column(

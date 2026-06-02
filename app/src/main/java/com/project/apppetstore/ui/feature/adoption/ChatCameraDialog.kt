@@ -67,6 +67,7 @@ fun ChatCameraDialog(
                         )
                     }
                 }
+
                 is PermissionStatus.Denied -> {
                     RequestPermissionCard(
                         onRequestPermission = { cameraPermission.launchPermissionRequest() },
