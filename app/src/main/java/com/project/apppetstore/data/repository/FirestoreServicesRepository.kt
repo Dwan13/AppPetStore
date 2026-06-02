@@ -4,18 +4,17 @@ import android.content.Context
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import com.project.apppetstore.R
 import com.project.apppetstore.data.model.Service
-import com.project.apppetstore.data.util.drawableToJpegBytes
-import com.project.apppetstore.data.util.uploadImageToStorage
 import kotlinx.coroutines.tasks.await
 
 /**
  * Carga servicios desde Firestore (colección "services").
  *
- * Primera ejecución (colección vacía):
- *  - Sube img_cuidador a Firebase Storage en "catalog/services/img_cuidador.jpg"
- *  - Cada servicio guarda ese mismo imageUrl (comparten la misma imagen genérica)
+ * Convención de imágenes en Storage:
+ *  - Imagen específica por servicio: catalog/services/{serviceId}.jpg
+ *  - Fallback global:             catalog/services/img_cuidador.jpg
  *
  * Ejecuciones posteriores:
  *  - Lee los documentos de Firestore con imageUrl ya guardado
@@ -24,14 +23,21 @@ import kotlinx.coroutines.tasks.await
  */
 object FirestoreServicesRepository {
 
-    private val db         get() = Firebase.firestore
+    private val db      get() = Firebase.firestore
+    private val storage get() = Firebase.storage.reference
     private const val COL = "services"
+    private const val STORAGE_BASE_PATH = "catalog/services"
+    private const val DEFAULT_IMAGE_NAME = "img_cuidador.jpg"
 
     suspend fun getServices(context: Context? = null): List<Service> = try {
         val snap = db.collection(COL).get().await()
         when {
             snap.isEmpty -> seedAndReturn(context)
-            else         -> snap.documents.mapNotNull { it.toService() }.ifEmpty { seedAndReturn(context) }
+            else -> {
+                val services = snap.documents.mapNotNull { it.toService() }
+                if (services.isEmpty()) seedAndReturn(context)
+                else enrichMissingImageUrls(services)
+            }
         }
     } catch (_: Exception) {
         MockPetShopRepository.getServices()
@@ -42,15 +48,9 @@ object FirestoreServicesRepository {
     private suspend fun seedAndReturn(context: Context?): List<Service> {
         val services = MockPetShopRepository.getServices()
         return try {
-            // Todos los servicios usan img_cuidador → subir una sola vez
-            val sharedUrl = if (context != null) {
-                val bytes = context.drawableToJpegBytes(R.drawable.img_cuidador)
-                uploadImageToStorage("catalog/services/img_cuidador.jpg", bytes)
-            } else null
-
             val batch = db.batch()
             val seeded = services.map { s ->
-                val sWithUrl = s.copy(imageUrl = sharedUrl ?: s.imageUrl)
+                val sWithUrl = s.copy(imageUrl = resolveServiceImageUrl(s.id, s.imageUrl))
                 batch.set(db.collection(COL).document(s.id), sWithUrl.toFirestoreMap())
                 sWithUrl
             }
@@ -59,6 +59,40 @@ object FirestoreServicesRepository {
         } catch (_: Exception) {
             services
         }
+    }
+
+    private suspend fun enrichMissingImageUrls(services: List<Service>): List<Service> {
+        val enriched = services.map { service ->
+            val resolved = resolveServiceImageUrl(service.id, service.imageUrl)
+            service.copy(imageUrl = resolved)
+        }
+
+        // Persistimos solo los que recibieron URL resuelta para evitar recomputar en cada arranque.
+        val batch = db.batch()
+        var hasChanges = false
+        enriched.forEachIndexed { index, service ->
+            val previous = services[index].imageUrl
+            if (!service.imageUrl.isNullOrBlank() && service.imageUrl != previous) {
+                batch.update(db.collection(COL).document(service.id), "imageUrl", service.imageUrl)
+                hasChanges = true
+            }
+        }
+        if (hasChanges) runCatching { batch.commit().await() }
+
+        return enriched
+    }
+
+    private suspend fun resolveServiceImageUrl(serviceId: String, currentUrl: String?): String? {
+        val specificPath = "$STORAGE_BASE_PATH/${serviceId.lowercase()}.jpg"
+        val fallbackPath = "$STORAGE_BASE_PATH/$DEFAULT_IMAGE_NAME"
+
+        return getDownloadUrlOrNull(specificPath)
+            ?: getDownloadUrlOrNull(fallbackPath)
+            ?: currentUrl
+    }
+
+    private suspend fun getDownloadUrlOrNull(path: String): String? {
+        return runCatching { storage.child(path).downloadUrl.await().toString() }.getOrNull()
     }
 }
 

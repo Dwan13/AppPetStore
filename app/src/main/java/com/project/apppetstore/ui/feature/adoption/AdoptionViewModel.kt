@@ -21,6 +21,7 @@ import com.project.apppetstore.data.repository.FirestorePetsRepository
 import com.project.apppetstore.data.repository.MockPetShopRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 data class AdoptionUiState(
     val pets              : List<Pet>         = emptyList(),
@@ -37,6 +38,11 @@ data class AdoptionUiState(
 )
 
 class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
+
+    companion object {
+        private const val AUTO_REPLY_MIN_DELAY_MS = 600L
+        private const val AUTO_REPLY_MAX_DELAY_MS = 1200L
+    }
 
     private val auth       = FirebaseAuth.getInstance()
     private val firestore  = FirebaseFirestore.getInstance()
@@ -415,7 +421,7 @@ class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun triggerAutoReply(chatId: String) {
         viewModelScope.launch {
-            delay(900)
+            delay(Random.nextLong(AUTO_REPLY_MIN_DELAY_MS, AUTO_REPLY_MAX_DELAY_MS + 1))
             firestore.collection("chats").document(chatId).collection("messages")
                 .add(hashMapOf(
                     "message"        to "¡Gracias por tu mensaje! Pronto te contactaremos.",

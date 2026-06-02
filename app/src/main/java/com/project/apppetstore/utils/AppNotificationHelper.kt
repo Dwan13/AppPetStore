@@ -13,7 +13,6 @@ import com.project.apppetstore.R
 
 /**
  * Helper para mostrar notificaciones locales del sistema Android.
- * Sigue el patrón del guía CL_13:
  *   1. Definir canal en Application.onCreate()
  *   2. Construir la notificación con NotificationCompat.Builder
  *   3. Asociar un PendingIntent para abrir la app
@@ -76,7 +75,7 @@ object AppNotificationHelper {
             context   = context,
             channelId = CHANNEL_ORDERS,
             id        = uniqueId(),
-            title     = "✅ Pedido confirmado",
+            title     = "Pedido confirmado",
             message   = "Tu pedido de $productName fue recibido y está siendo procesado."
         )
     }
@@ -88,7 +87,7 @@ object AppNotificationHelper {
             context   = context,
             channelId = CHANNEL_PETS,
             id        = uniqueId(),
-            title     = "🐾 Mascota registrada",
+            title     = "Mascota registrada",
             message   = "$petName ha sido añadida a tu perfil correctamente."
         )
     }

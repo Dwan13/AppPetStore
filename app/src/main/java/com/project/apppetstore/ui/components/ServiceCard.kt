@@ -2,7 +2,6 @@ package com.project.apppetstore.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import coil3.compose.AsyncImage
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,11 +48,12 @@ fun ServiceCard(
                 contentAlignment = Alignment.Center
             ) {
                 if (!service.imageUrl.isNullOrBlank()) {
-                    AsyncImage(
-                        model              = service.imageUrl,
+                    AppAsyncImage(
+                        imageUrl           = service.imageUrl,
                         contentDescription = service.name,
                         contentScale       = ContentScale.Crop,
-                        modifier           = Modifier.fillMaxSize()
+                        modifier           = Modifier.fillMaxSize(),
+                        placeholderRes     = R.drawable.ic_user_round
                     )
                 } else {
                     val fallbackRes = runCatching {

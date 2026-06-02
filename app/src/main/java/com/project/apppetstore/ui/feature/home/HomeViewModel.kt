@@ -30,6 +30,10 @@ data class HomeUiState(
 
 class HomeViewModel(app: Application) : AndroidViewModel(app) {
 
+    companion object {
+        private const val SKELETON_MIN_DURATION_MS = 700L
+    }
+
     private val settingsRepo = SettingsRepository.getInstance(app)
 
     /** Radio actual en km (reactivo vía SettingsRepository). */
@@ -66,14 +70,15 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
 
         // ── Carga inicial de datos ────────────────────────────────────────────
         viewModelScope.launch {
-            delay(700)
             val ctx = getApplication<Application>()
 
             // 1. Mascotas primero (el carrusel necesita itemCount correcto)
-            val pets = try {
-                FirestorePetsRepository.getPets(ctx)
-            } catch (_: Exception) {
-                MockPetShopRepository.getPets()
+            val pets = withMinLoadingTime(SKELETON_MIN_DURATION_MS) {
+                try {
+                    FirestorePetsRepository.getPets(ctx)
+                } catch (_: Exception) {
+                    MockPetShopRepository.getPets()
+                }
             }
             uiState = uiState.copy(isLoading = false, pets = pets)
 
@@ -140,5 +145,15 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
             services       = filtered,
             hasLocation    = hasLocation
         )
+    }
+
+    // Garantiza un mínimo de tiempo para loaders visuales sin frenar cargas lentas.
+    private suspend fun <T> withMinLoadingTime(minDurationMs: Long, block: suspend () -> T): T {
+        val start = System.currentTimeMillis()
+        val result = block()
+        val elapsed = System.currentTimeMillis() - start
+        val remaining = minDurationMs - elapsed
+        if (remaining > 0) delay(remaining)
+        return result
     }
 }
