@@ -1,14 +1,6 @@
 package com.project.apppetstore.ui.feature.adoption
 
-import android.Manifest
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.provider.MediaStore
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
@@ -72,7 +64,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.project.apppetstore.R
 import com.project.apppetstore.data.model.AttachmentType
@@ -82,7 +73,6 @@ import com.project.apppetstore.ui.components.ChatSection
 import com.project.apppetstore.ui.components.PetCard
 import com.project.apppetstore.ui.feature.favorites.FavoritesViewModel
 import com.project.apppetstore.ui.viewmodels.SensorViewModel
-import com.project.apppetstore.utils.createVideoOnMoviesFolder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,7 +95,6 @@ fun AdoptionScreen(
     isOwnerViewingChat: Boolean = false
 ) {
     val context = LocalContext.current
-    val packageManager = context.packageManager
 
     // setup del sensor en esta pantalla ───────────────────────────
     val sensorState by sensorViewModel.state.collectAsState()
@@ -133,7 +122,8 @@ fun AdoptionScreen(
     val isFavorite = selectedPetId != null && selectedPetId in favoritesState.favoritePetIds
     val selectedPet = uiState.pets.find { it.id == selectedPetId }
     var showCameraDialog by remember { mutableStateOf(false) }
-    var pendingVideoUri by remember { mutableStateOf<Uri?>(null) }
+    var showVideoDialog by remember { mutableStateOf(false) }
+    var showAudioDialog by remember { mutableStateOf(false) }
     var highlightedPetIndex by remember { mutableStateOf(0) }
     val petsCarouselState = rememberCarouselState { petsToShow.size }
 
@@ -158,60 +148,6 @@ fun AdoptionScreen(
         }
     )
 
-    val videoCaptureLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CaptureVideo(),
-        onResult = { success ->
-            val outputUri = pendingVideoUri
-            pendingVideoUri = null
-
-            if (success && outputUri != null) {
-                onAttachMedia(AttachmentType.VIDEO, outputUri.toString())
-            }
-        }
-    )
-
-    val audioRecordLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult(),
-        onResult = { result ->
-            val recordedUri = result.data?.data
-            if (recordedUri != null) {
-                onAttachMedia(AttachmentType.AUDIO, recordedUri.toString())
-            } else {
-                Toast.makeText(
-                    context,
-                    "No se pudo obtener el audio grabado. Selecciona un audio.",
-                    Toast.LENGTH_SHORT
-                ).show()
-                audioPickerLauncher.launch("audio/*")
-            }
-        }
-    )
-
-    val audioPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { granted ->
-            if (granted) {
-                val recordIntent = Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION)
-                if (recordIntent.resolveActivity(packageManager) != null) {
-                    try {
-                        audioRecordLauncher.launch(recordIntent)
-                    } catch (_: Exception) {
-                        launchAudioPickerFallback(context, audioPickerLauncher)
-                    }
-                } else {
-                    launchAudioPickerFallback(context, audioPickerLauncher)
-                }
-            } else {
-                Toast.makeText(
-                    context,
-                    "Permiso de audio denegado. Selecciona un audio.",
-                    Toast.LENGTH_SHORT
-                ).show()
-                audioPickerLauncher.launch("audio/*")
-            }
-        }
-    )
-
     val onTakePhoto = { showCameraDialog = true }
     val onPickImage = {
         imagePickerLauncher.launch(
@@ -226,74 +162,8 @@ fun AdoptionScreen(
     val onPickAudio = {
         audioPickerLauncher.launch("audio/*")
     }
-    val onRecordVideo = {
-        val captureVideoIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
-        if (captureVideoIntent.resolveActivity(packageManager) == null) {
-            Toast.makeText(
-                context,
-                "No hay app de video. Selecciona un video.",
-                Toast.LENGTH_SHORT
-            ).show()
-            onPickVideo()
-        } else {
-            val outputUri = createVideoOnMoviesFolder(
-                name = "APPPETSTORE_VIDEO_${System.currentTimeMillis()}",
-                context = context
-            )
-
-            if (outputUri == null) {
-                Toast.makeText(
-                    context,
-                    "No se pudo preparar la grabacion de video. Selecciona un video.",
-                    Toast.LENGTH_SHORT
-                ).show()
-                onPickVideo()
-            } else {
-                pendingVideoUri = outputUri
-                try {
-                    videoCaptureLauncher.launch(outputUri)
-                } catch (_: ActivityNotFoundException) {
-                    pendingVideoUri = null
-                    Toast.makeText(
-                        context,
-                        "No hay camara de video disponible. Selecciona un video.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    onPickVideo()
-                } catch (_: Exception) {
-                    pendingVideoUri = null
-                    Toast.makeText(
-                        context,
-                        "No se pudo abrir la camara de video. Selecciona un video.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    onPickVideo()
-                }
-            }
-        }
-    }
-    val onRecordAudio = {
-        val recordIntent = Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION)
-        if (recordIntent.resolveActivity(packageManager) == null) {
-            launchAudioPickerFallback(context, audioPickerLauncher)
-        } else {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.RECORD_AUDIO
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                try {
-                    audioRecordLauncher.launch(recordIntent)
-                } catch (_: ActivityNotFoundException) {
-                    launchAudioPickerFallback(context, audioPickerLauncher)
-                } catch (_: Exception) {
-                    launchAudioPickerFallback(context, audioPickerLauncher)
-                }
-            } else {
-                audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-            }
-        }
-    }
+    val onRecordVideo = { showVideoDialog = true }
+    val onRecordAudio = { showAudioDialog = true }
 
     // ── Vista del dueño: chat directo desde notificación ────────────────────
     if (isOwnerViewingChat) {
@@ -421,6 +291,20 @@ fun AdoptionScreen(
         ChatCameraDialog(
             onDismiss = { showCameraDialog = false },
             onPhotoTaken = { uri -> onAttachMedia(AttachmentType.IMAGE, uri.toString()) }
+        )
+    }
+
+    if (showVideoDialog) {
+        ChatVideoDialog(
+            onDismiss = { showVideoDialog = false },
+            onVideoRecorded = { uri -> onAttachMedia(AttachmentType.VIDEO, uri.toString()) }
+        )
+    }
+
+    if (showAudioDialog) {
+        ChatAudioDialog(
+            onDismiss = { showAudioDialog = false },
+            onAudioRecorded = { uri -> onAttachMedia(AttachmentType.AUDIO, uri.toString()) }
         )
     }
 
@@ -716,15 +600,4 @@ private fun ShakeDiscoverBottomSheet(
     }
 }
 
-private fun launchAudioPickerFallback(
-    context: android.content.Context,
-    audioPickerLauncher: ActivityResultLauncher<String>
-) {
-    Toast.makeText(
-        context,
-        "Este dispositivo no permite grabar audio. Selecciona un audio.",
-        Toast.LENGTH_SHORT
-    ).show()
-    audioPickerLauncher.launch("audio/*")
-}
 
