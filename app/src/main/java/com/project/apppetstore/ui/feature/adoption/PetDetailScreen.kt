@@ -66,22 +66,28 @@ fun PetDetailScreen(
     onPickVideo: () -> Unit,
     onRecordAudio: () -> Unit,
     onPickAudio: () -> Unit,
-    // UC-26: valores del giroscopio suavizados para el parallax
+    // del giroscopio suavizados para el parallax
     gyroX: Float = 0f,
     gyroY: Float = 0f,
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current.density
 
-    // UC-26: animar el desplazamiento con spring para eliminar jitter
+    // animar el desplazamiento con spring para eliminar jitter
     val parallaxOffsetX by animateFloatAsState(
         targetValue = (gyroY * 28f).coerceIn(-14f, 14f),
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioNoBouncy),
+        animationSpec = spring(
+            stiffness = Spring.StiffnessMediumLow,
+            dampingRatio = Spring.DampingRatioNoBouncy
+        ),
         label = "parallaxX"
     )
     val parallaxOffsetY by animateFloatAsState(
         targetValue = (gyroX * 20f).coerceIn(-10f, 10f),
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioNoBouncy),
+        animationSpec = spring(
+            stiffness = Spring.StiffnessMediumLow,
+            dampingRatio = Spring.DampingRatioNoBouncy
+        ),
         label = "parallaxY"
     )
 
@@ -90,13 +96,17 @@ fun PetDetailScreen(
         delay(350)
         scrollState.animateScrollTo(scrollState.maxValue)
     }
-    Box(modifier = modifier.fillMaxSize().background(Color.White)) {
+    Box(modifier = modifier
+        .fillMaxSize()
+        .background(Color.White)) {
         Column(
             modifier = Modifier
                 .verticalScroll(scrollState)
                 .padding(bottom = 16.dp)
         ) {
-            Box(modifier = Modifier.height(280.dp).fillMaxWidth()) {
+            Box(modifier = Modifier
+                .height(280.dp)
+                .fillMaxWidth()) {
                 when {
                     pet.imageUrl != null -> {
                         AsyncImage(
@@ -106,7 +116,7 @@ fun PetDetailScreen(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .graphicsLayer {
-                                    // UC-26: parallax — escala ligeramente para evitar bordes vacíos
+                                    //   parallax — escala ligeramente para evitar bordes vacíos
                                     scaleX = 1.06f
                                     scaleY = 1.06f
                                     translationX = parallaxOffsetX * density
@@ -116,6 +126,7 @@ fun PetDetailScreen(
                             error = rememberVectorPainter(Icons.Default.Clear),
                         )
                     }
+
                     pet.imageRes != null -> {
                         Image(
                             painter = painterResource(pet.imageRes),
@@ -131,6 +142,7 @@ fun PetDetailScreen(
                                 },
                         )
                     }
+
                     else -> {
                         Box(
                             modifier = Modifier
@@ -138,7 +150,12 @@ fun PetDetailScreen(
                                 .background(Color(0xFFF3FCD6)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(pet.name.take(1), fontSize = 80.sp, color = Color(0xFF5C9639), fontWeight = FontWeight.Bold)
+                            Text(
+                                pet.name.take(1),
+                                fontSize = 80.sp,
+                                color = Color(0xFF5C9639),
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }
@@ -196,20 +213,57 @@ fun PetDetailScreen(
                     Text(pet.breed, color = Color(0xFF6B7280), fontSize = 15.sp)
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                        Column { Text("Edad", fontWeight = FontWeight.Bold, fontSize = 13.sp); Text(pet.age, fontSize = 13.sp) }
-                        Column { Text("Género", fontWeight = FontWeight.Bold, fontSize = 13.sp); Text(pet.gender, fontSize = 13.sp) }
-                        Column { Text("Tamaño", fontWeight = FontWeight.Bold, fontSize = 13.sp); Text(pet.size, fontSize = 13.sp) }
+                        Column {
+                            Text("Edad", fontWeight = FontWeight.Bold, fontSize = 13.sp); Text(
+                            pet.age,
+                            fontSize = 13.sp
+                        )
+                        }
+                        Column {
+                            Text(
+                                "Género",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp
+                            ); Text(pet.gender, fontSize = 13.sp)
+                        }
+                        Column {
+                            Text(
+                                "Tamaño",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp
+                            ); Text(pet.size, fontSize = 13.sp)
+                        }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     // Salud, vacunas, personalidad, requisitos
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("• Salud", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF5C9639))
+                        Text(
+                            "• Salud",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = Color(0xFF5C9639)
+                        )
                         Text(pet.health, fontSize = 13.sp)
-                        Text("• Vacunas", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF5C9639))
+                        Text(
+                            "• Vacunas",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = Color(0xFF5C9639)
+                        )
                         Text(pet.vaccines, fontSize = 13.sp)
-                        Text("• Personalidad", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF5C9639))
+                        Text(
+                            "• Personalidad",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = Color(0xFF5C9639)
+                        )
                         Text(pet.personality, fontSize = 13.sp)
-                        Text("• Requisitos", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF5C9639))
+                        Text(
+                            "• Requisitos",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = Color(0xFF5C9639)
+                        )
                         Text(pet.requirements, fontSize = 13.sp)
                     }
                 }

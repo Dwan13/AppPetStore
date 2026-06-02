@@ -98,20 +98,18 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Data / Enums
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Data / Enums
+ 
 enum class PoiCategory { CLINICA, SPA, DOMICILIO }
 
 data class PoiItem(
-    val id       : String,
-    val name     : String,
-    val category : PoiCategory,
-    val position : LatLng,
-    val detail   : String,
+    val id: String,
+    val name: String,
+    val category: PoiCategory,
+    val position: LatLng,
+    val detail: String,
     /** Link to the real Service from the database (null for fallback entries). */
-    val service  : Service? = null
+    val service: Service? = null
 )
 
 private val bogotaCenter = LatLng(4.653332, -74.083652)
@@ -121,14 +119,62 @@ private val bogotaCenter = LatLng(4.653332, -74.083652)
  * when no service has valid coordinates.
  */
 private val fallbackPois = listOf(
-    PoiItem("c01", "Clínica Vet Central",     PoiCategory.CLINICA,   LatLng(4.6420, -74.0588), "Urgencias 24/7"),
-    PoiItem("c02", "Fauna Clínica Usaquén",    PoiCategory.CLINICA,   LatLng(4.6897, -74.0425), "Consulta y vacunación"),
-    PoiItem("c03", "Vetpet Suba Colina",       PoiCategory.CLINICA,   LatLng(4.7340, -74.0916), "Laboratorio clínico"),
-    PoiItem("c04", "Hospital Veterinario Sur", PoiCategory.CLINICA,   LatLng(4.6291, -74.1559), "Cirugía y hospitalización"),
-    PoiItem("s01", "Spa Patitas Felices",      PoiCategory.SPA,       LatLng(4.6673, -74.0836), "Baño y peluquería canina"),
-    PoiItem("s02", "Pet Grooming Chicó",       PoiCategory.SPA,       LatLng(4.6739, -74.0432), "Grooming premium"),
-    PoiItem("d01", "Dr. Carlos Ruiz",          PoiCategory.DOMICILIO, LatLng(4.6351, -74.0636), "Veterinario a domicilio"),
-    PoiItem("d02", "Diego Reina — Cuidador",   PoiCategory.DOMICILIO, LatLng(4.6476, -74.0810), "Cuidado de mascotas en tu hogar")
+    PoiItem(
+        "c01",
+        "Clínica Vet Central",
+        PoiCategory.CLINICA,
+        LatLng(4.6420, -74.0588),
+        "Urgencias 24/7"
+    ),
+    PoiItem(
+        "c02",
+        "Fauna Clínica Usaquén",
+        PoiCategory.CLINICA,
+        LatLng(4.6897, -74.0425),
+        "Consulta y vacunación"
+    ),
+    PoiItem(
+        "c03",
+        "Vetpet Suba Colina",
+        PoiCategory.CLINICA,
+        LatLng(4.7340, -74.0916),
+        "Laboratorio clínico"
+    ),
+    PoiItem(
+        "c04",
+        "Hospital Veterinario Sur",
+        PoiCategory.CLINICA,
+        LatLng(4.6291, -74.1559),
+        "Cirugía y hospitalización"
+    ),
+    PoiItem(
+        "s01",
+        "Spa Patitas Felices",
+        PoiCategory.SPA,
+        LatLng(4.6673, -74.0836),
+        "Baño y peluquería canina"
+    ),
+    PoiItem(
+        "s02",
+        "Pet Grooming Chicó",
+        PoiCategory.SPA,
+        LatLng(4.6739, -74.0432),
+        "Grooming premium"
+    ),
+    PoiItem(
+        "d01",
+        "Dr. Carlos Ruiz",
+        PoiCategory.DOMICILIO,
+        LatLng(4.6351, -74.0636),
+        "Veterinario a domicilio"
+    ),
+    PoiItem(
+        "d02",
+        "Diego Reina — Cuidador",
+        PoiCategory.DOMICILIO,
+        LatLng(4.6476, -74.0810),
+        "Cuidado de mascotas en tu hogar"
+    )
 )
 
 // Origen por defecto (fallback cuando el servicio no tiene coordenadas)
@@ -141,75 +187,75 @@ private val defaultDestination = LatLng(4.6619, -74.0818)
  * Construye una ruta de [steps+1] waypoints equiespaciados en línea recta
  * entre [origin] y [destination].
  */
-private fun buildSimulationRoute(origin: LatLng, destination: LatLng, steps: Int = 7): List<LatLng> =
+private fun buildSimulationRoute(
+    origin: LatLng,
+    destination: LatLng,
+    steps: Int = 7
+): List<LatLng> =
     (0..steps).map { i ->
         val t = i.toDouble() / steps
         LatLng(
-            origin.latitude  + (destination.latitude  - origin.latitude)  * t,
+            origin.latitude + (destination.latitude - origin.latitude) * t,
             origin.longitude + (destination.longitude - origin.longitude) * t
         )
     }
 
 /** ETA aproximado en segundos según distancia (25 km/h promedio en ciudad). */
 private fun roughEtaSeconds(origin: LatLng, destination: LatLng): Int {
-    val dlat   = destination.latitude  - origin.latitude
-    val dlng   = destination.longitude - origin.longitude
+    val dlat = destination.latitude - origin.latitude
+    val dlng = destination.longitude - origin.longitude
     val distKm = Math.sqrt(dlat * dlat + dlng * dlng) * 111.0
     return ((distKm / 25.0) * 3600).toInt().coerceIn(45, 600)
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Entry point — preview → mapa
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Entry point — preview → mapa
+ 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MapScreen(
-    modifier           : Modifier = Modifier,
-    deliveryRequested  : Boolean,
-    serviceCategory    : String?  = null,
-    skipPreview        : Boolean  = false,
-    destLat            : Double?  = null,
-    destLng            : Double?  = null,
-    originLat          : Double?  = null,
-    originLng          : Double?  = null,
+    modifier: Modifier = Modifier,
+    deliveryRequested: Boolean,
+    serviceCategory: String? = null,
+    skipPreview: Boolean = false,
+    destLat: Double? = null,
+    destLng: Double? = null,
+    originLat: Double? = null,
+    originLng: Double? = null,
     /** Called when the user taps "Solicitar cita" on a map marker. */
-    onBookAppointment  : ((Service) -> Unit)? = null,
+    onBookAppointment: ((Service) -> Unit)? = null,
     /** Called when the user taps "A domicilio" on a map marker. */
-    onRequestDelivery  : ((Service) -> Unit)? = null,
-    locationViewModel  : LocationViewModel = viewModel(),
-    sensorViewModel    : SensorViewModel   = viewModel()
+    onRequestDelivery: ((Service) -> Unit)? = null,
+    locationViewModel: LocationViewModel = viewModel(),
+    sensorViewModel: SensorViewModel = viewModel()
 ) {
     // Si viene del flujo de delivery o desde el bottom sheet, saltamos el preview.
     var showMap by rememberSaveable { mutableStateOf(deliveryRequested || skipPreview) }
 
     if (!showMap) {
         MapPreviewScreen(
-            modifier   = modifier,
+            modifier = modifier,
             onEnterMap = { showMap = true }
         )
         return
     }
 
     MapContent(
-        modifier          = modifier,
+        modifier = modifier,
         deliveryRequested = deliveryRequested,
-        serviceCategory   = serviceCategory,
-        destLat           = destLat,
-        destLng           = destLng,
-        originLat         = originLat,
-        originLng         = originLng,
+        serviceCategory = serviceCategory,
+        destLat = destLat,
+        destLng = destLng,
+        originLat = originLat,
+        originLng = originLng,
         onBookAppointment = onBookAppointment,
         onRequestDelivery = onRequestDelivery,
         locationViewModel = locationViewModel,
-        sensorViewModel   = sensorViewModel
+        sensorViewModel = sensorViewModel
     )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Pantalla de preview / bienvenida
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Pantalla de preview / bienvenida
+ 
 @Composable
 private fun MapPreviewScreen(
     modifier: Modifier = Modifier,
@@ -225,16 +271,16 @@ private fun MapPreviewScreen(
 
         // ── Hero icon ────────────────────────────────────────────────────────
         Surface(
-            shape    = CircleShape,
-            color    = MaterialTheme.colorScheme.primaryContainer,
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
             modifier = Modifier.size(136.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
-                    imageVector        = Icons.Rounded.LocationOn,
+                    imageVector = Icons.Rounded.LocationOn,
                     contentDescription = null,
-                    tint               = MaterialTheme.colorScheme.primary,
-                    modifier           = Modifier.size(68.dp)
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(68.dp)
                 )
             }
         }
@@ -243,19 +289,19 @@ private fun MapPreviewScreen(
 
         // ── Título ───────────────────────────────────────────────────────────
         Text(
-            text       = "Clínicas y servicios\ncercanos a ti",
-            style      = MaterialTheme.typography.headlineMedium,
+            text = "Clínicas y servicios\ncercanos a ti",
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            textAlign  = TextAlign.Center
+            textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         // ── Descripción ──────────────────────────────────────────────────────
         Text(
-            text      = "Encuentra veterinarias, spas y servicios a domicilio cerca de ti.",
-            style     = MaterialTheme.typography.bodyMedium,
-            color     = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = "Encuentra veterinarias, spas y servicios a domicilio cerca de ti.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
 
@@ -264,10 +310,10 @@ private fun MapPreviewScreen(
         // ── Chips de categorías ──────────────────────────────────────────────
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment     = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically
         ) {
             MapFeatureChip(icon = Icons.Rounded.LocalHospital, label = "Clínicas")
-            MapFeatureChip(icon = Icons.Rounded.Spa,           label = "Spas")
+            MapFeatureChip(icon = Icons.Rounded.Spa, label = "Spas")
             MapFeatureChip(icon = Icons.Rounded.DeliveryDining, label = "Domicilio")
         }
 
@@ -275,20 +321,20 @@ private fun MapPreviewScreen(
 
         // ── CTA principal ────────────────────────────────────────────────────
         Button(
-            onClick  = onEnterMap,
+            onClick = onEnterMap,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(50)
         ) {
             Icon(
-                imageVector        = Icons.Rounded.NearMe,
+                imageVector = Icons.Rounded.NearMe,
                 contentDescription = null,
-                modifier           = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text  = "Ver clínicas cercanas",
+                text = "Ver clínicas cercanas",
                 style = MaterialTheme.typography.labelLarge
             )
         }
@@ -297,9 +343,9 @@ private fun MapPreviewScreen(
 
         // ── Aviso de permisos ────────────────────────────────────────────────
         Text(
-            text      = "Se solicitará permiso de ubicación al continuar",
-            style     = MaterialTheme.typography.labelSmall,
-            color     = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = "Se solicitará permiso de ubicación al continuar",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
     }
@@ -312,18 +358,18 @@ private fun MapFeatureChip(icon: ImageVector, label: String) {
         color = MaterialTheme.colorScheme.secondaryContainer
     ) {
         Row(
-            modifier              = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-            verticalAlignment     = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Icon(
-                imageVector        = icon,
+                imageVector = icon,
                 contentDescription = null,
-                tint               = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier           = Modifier.size(14.dp)
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.size(14.dp)
             )
             Text(
-                text  = label,
+                text = label,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer
             )
@@ -331,34 +377,32 @@ private fun MapFeatureChip(icon: ImageVector, label: String) {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Contenido completo del mapa
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Contenido completo del mapa
+ 
 @SuppressLint("MissingPermission")
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 private fun MapContent(
-    modifier           : Modifier = Modifier,
-    deliveryRequested  : Boolean,
-    serviceCategory    : String?  = null,
-    destLat            : Double?  = null,
-    destLng            : Double?  = null,
-    originLat          : Double?  = null,
-    originLng          : Double?  = null,
-    onBookAppointment  : ((Service) -> Unit)? = null,
-    onRequestDelivery  : ((Service) -> Unit)? = null,
-    locationViewModel  : LocationViewModel  = viewModel(),
-    sensorViewModel    : SensorViewModel    = viewModel(),
-    servicesViewModel  : ServicesViewModel  = viewModel()
+    modifier: Modifier = Modifier,
+    deliveryRequested: Boolean,
+    serviceCategory: String? = null,
+    destLat: Double? = null,
+    destLng: Double? = null,
+    originLat: Double? = null,
+    originLng: Double? = null,
+    onBookAppointment: ((Service) -> Unit)? = null,
+    onRequestDelivery: ((Service) -> Unit)? = null,
+    locationViewModel: LocationViewModel = viewModel(),
+    sensorViewModel: SensorViewModel = viewModel(),
+    servicesViewModel: ServicesViewModel = viewModel()
 ) {
-    val context     = LocalContext.current
+    val context = LocalContext.current
     val sensorState by sensorViewModel.state.collectAsState()
     val permissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
 
     val showRationale = when (val status = permissionState.status) {
         is PermissionStatus.Denied -> status.shouldShowRationale
-        PermissionStatus.Granted   -> false
+        PermissionStatus.Granted -> false
     }
 
     var selectedCategory by rememberSaveable { mutableStateOf<PoiCategory?>(null) }
@@ -374,17 +418,17 @@ private fun MapContent(
         services.mapNotNull { svc ->
             if (svc.lat == 0.0 && svc.lng == 0.0) null
             else PoiItem(
-                id       = svc.id,
-                name     = svc.name,
+                id = svc.id,
+                name = svc.name,
                 category = when (svc.category) {
-                    "Clinicas"    -> PoiCategory.CLINICA
-                    "Spa"         -> PoiCategory.SPA
+                    "Clinicas" -> PoiCategory.CLINICA
+                    "Spa" -> PoiCategory.SPA
                     "A domicilio" -> PoiCategory.DOMICILIO
-                    else          -> PoiCategory.CLINICA
+                    else -> PoiCategory.CLINICA
                 },
                 position = LatLng(svc.lat, svc.lng),
-                detail   = svc.description,
-                service  = svc
+                detail = svc.description,
+                service = svc
             )
         }
     }
@@ -410,7 +454,7 @@ private fun MapContent(
     val filteredPois: List<PoiItem> = remember(selectedCategory, userSearchLocation, servicePois) {
         val allPois = if (servicePois.isNotEmpty()) servicePois else fallbackPois
         val base = if (selectedCategory == null) allPois
-                   else allPois.filter { it.category == selectedCategory }
+        else allPois.filter { it.category == selectedCategory }
         val searchLoc = userSearchLocation
         if (searchLoc != null) {
             val results = FloatArray(1)
@@ -425,8 +469,8 @@ private fun MapContent(
         } else base
     }
 
-    val lightMapStyle  = rememberMapStyle(context, R.raw.map_style_light)
-    val darkMapStyle   = rememberMapStyle(context, R.raw.map_style_dark)
+    val lightMapStyle = rememberMapStyle(context, R.raw.map_style_light)
+    val darkMapStyle = rememberMapStyle(context, R.raw.map_style_dark)
     val activeMapStyle = when {
         sensorState.isLightSensorAvailable && sensorState.isDarkEnvironment -> darkMapStyle
         sensorState.isLightSensorAvailable -> lightMapStyle
@@ -451,26 +495,26 @@ private fun MapContent(
         else defaultDestination
     }
 
-    var activeRoute    by remember { mutableStateOf(buildSimulationRoute(origin, destination)) }
+    var activeRoute by remember { mutableStateOf(buildSimulationRoute(origin, destination)) }
     var isRouteLoading by remember { mutableStateOf(deliveryRequested) }
 
     // ── Estado de la simulación ──────────────────────────────────────────────
     val courierLat = remember { Animatable(origin.latitude.toFloat()) }
     val courierLng = remember { Animatable(origin.longitude.toFloat()) }
-    var simStep    by remember { mutableIntStateOf(0) }
+    var simStep by remember { mutableIntStateOf(0) }
     var simArrived by remember { mutableStateOf(false) }
 
     var initialEtaSeconds by remember { mutableIntStateOf(roughEtaSeconds(origin, destination)) }
-    var simStepMs         by remember { mutableIntStateOf(2_000) }
+    var simStepMs by remember { mutableIntStateOf(2_000) }
 
-    val segments          = (activeRoute.size - 1).coerceAtLeast(1)
-    val progress          = simStep.toFloat() / segments.toFloat()
+    val segments = (activeRoute.size - 1).coerceAtLeast(1)
+    val progress = simStep.toFloat() / segments.toFloat()
     val displayEtaSeconds = (initialEtaSeconds * (1f - progress)).toInt()
 
     val courierPos = LatLng(courierLat.value.toDouble(), courierLng.value.toDouble())
 
     val traveledPath: List<LatLng> = activeRoute.take(simStep + 1) + listOf(courierPos)
-    val remainPath:   List<LatLng> = listOf(courierPos) + activeRoute.drop(simStep + 1)
+    val remainPath: List<LatLng> = listOf(courierPos) + activeRoute.drop(simStep + 1)
 
     val courierMarkerState = remember { MarkerState(position = origin) }
     SideEffect { courierMarkerState.position = courierPos }
@@ -481,7 +525,10 @@ private fun MapContent(
 
         val apiKey = runCatching {
             context.packageManager
-                .getApplicationInfo(context.packageName, android.content.pm.PackageManager.GET_META_DATA)
+                .getApplicationInfo(
+                    context.packageName,
+                    android.content.pm.PackageManager.GET_META_DATA
+                )
                 .metaData?.getString("com.google.android.geo.API_KEY") ?: ""
         }.getOrElse { "" }
 
@@ -493,7 +540,7 @@ private fun MapContent(
             if (result.durationSeconds > 0) {
                 initialEtaSeconds = result.durationSeconds.coerceAtLeast(30)
                 simStepMs = (result.durationSeconds * 1_000L /
-                    (result.waypoints.size.coerceAtLeast(1) * 6L))
+                        (result.waypoints.size.coerceAtLeast(1) * 6L))
                     .coerceIn(800L, 5_000L).toInt()
             }
         }
@@ -504,11 +551,11 @@ private fun MapContent(
     LaunchedEffect(deliveryRequested, isRouteLoading) {
         if (!deliveryRequested || isRouteLoading) return@LaunchedEffect
 
-        val route  = activeRoute
+        val route = activeRoute
         val msStep = simStepMs
 
         cameraPositionState.animate(
-            update     = CameraUpdateFactory.newLatLngZoom(route.first(), 16f),
+            update = CameraUpdateFactory.newLatLngZoom(route.first(), 16f),
             durationMs = 1_200
         )
         delay(500L)
@@ -518,13 +565,13 @@ private fun MapContent(
             coroutineScope {
                 launch {
                     courierLat.animateTo(
-                        targetValue   = target.latitude.toFloat(),
+                        targetValue = target.latitude.toFloat(),
                         animationSpec = tween(msStep, easing = LinearEasing)
                     )
                 }
                 launch {
                     courierLng.animateTo(
-                        targetValue   = target.longitude.toFloat(),
+                        targetValue = target.longitude.toFloat(),
                         animationSpec = tween(msStep, easing = LinearEasing)
                     )
                 }
@@ -539,7 +586,7 @@ private fun MapContent(
         if (!deliveryRequested || activeRoute.isEmpty()) return@LaunchedEffect
         val target = activeRoute.getOrNull(simStep) ?: return@LaunchedEffect
         cameraPositionState.animate(
-            update     = CameraUpdateFactory.newLatLngZoom(target, 16f),
+            update = CameraUpdateFactory.newLatLngZoom(target, 16f),
             durationMs = simStepMs
         )
     }
@@ -572,7 +619,7 @@ private fun MapContent(
 
     // ── UI ───────────────────────────────────────────────────────────────────
     Column(
-        modifier            = modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -580,25 +627,25 @@ private fun MapContent(
 
         if (isMapLoading) {
             LinearProgressIndicator(
-                modifier   = Modifier.fillMaxWidth(),
-                color      = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
         }
 
         if (!deliveryRequested) {
             CategoryFilters(
-                selectedCategory   = selectedCategory,
+                selectedCategory = selectedCategory,
                 onCategorySelected = {
                     selectedCategory = it
-                    selectedService  = null   // deselecciona al cambiar filtro
+                    selectedService = null   // deselecciona al cambiar filtro
                 }
             )
         }
 
         if (!permissionState.status.isGranted) {
             RequestPermissionCard(
-                modifier            = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 onRequestPermission = { permissionState.launchPermissionRequest() }
             )
         }
@@ -608,16 +655,18 @@ private fun MapContent(
 
         // ── Google Map ───────────────────────────────────────────────────────
         GoogleMap(
-            modifier            = Modifier.fillMaxWidth().weight(1f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
             cameraPositionState = cameraPositionState,
-            onMapLoaded         = { isMapLoading = false },
-            onMapClick          = { selectedService = null },   // deselecciona al tocar el mapa
+            onMapLoaded = { isMapLoading = false },
+            onMapClick = { selectedService = null },   // deselecciona al tocar el mapa
             properties = MapProperties(
                 isMyLocationEnabled = permissionState.status.isGranted && !deliveryRequested,
-                mapStyleOptions     = activeMapStyle
+                mapStyleOptions = activeMapStyle
             ),
             uiSettings = MapUiSettings(
-                zoomControlsEnabled     = false,
+                zoomControlsEnabled = false,
                 myLocationButtonEnabled = permissionState.status.isGranted && !deliveryRequested
             )
         ) {
@@ -625,25 +674,25 @@ private fun MapContent(
                 // ── Modo simulación de domicilio ─────────────────────────────
 
                 MarkerComposable(
-                    keys    = arrayOf("origin"),
-                    state   = rememberMarkerState(position = activeRoute.first()),
-                    title   = serviceCategory ?: "Punto de recogida",
+                    keys = arrayOf("origin"),
+                    state = rememberMarkerState(position = activeRoute.first()),
+                    title = serviceCategory ?: "Punto de recogida",
                     snippet = "Origen del domicilio"
                 ) {
                     DeliveryMarkerPin(
-                        icon            = Icons.Rounded.LocalHospital,
+                        icon = Icons.Rounded.LocalHospital,
                         backgroundColor = Color(0xFF2E7D32)
                     )
                 }
 
                 MarkerComposable(
-                    keys    = arrayOf("destination"),
-                    state   = rememberMarkerState(position = activeRoute.last()),
-                    title   = "Tu dirección",
+                    keys = arrayOf("destination"),
+                    state = rememberMarkerState(position = activeRoute.last()),
+                    title = "Tu dirección",
                     snippet = "Destino de entrega"
                 ) {
                     DeliveryMarkerPin(
-                        icon            = Icons.Rounded.Pets,
+                        icon = Icons.Rounded.Pets,
                         backgroundColor = Color(0xFFE65100)
                     )
                 }
@@ -651,8 +700,8 @@ private fun MapContent(
                 if (remainPath.size >= 2) {
                     Polyline(
                         points = remainPath,
-                        color  = Color(0xFFBDBDBD),
-                        width  = 6f
+                        color = Color(0xFFBDBDBD),
+                        width = 6f
                     )
                 }
 
@@ -660,21 +709,21 @@ private fun MapContent(
                     val primaryColor = MaterialTheme.colorScheme.primary
                     Polyline(
                         points = traveledPath,
-                        color  = primaryColor,
-                        width  = 9f
+                        color = primaryColor,
+                        width = 9f
                     )
                 }
 
                 MarkerComposable(
-                    keys    = arrayOf("courier"),
-                    state   = courierMarkerState,
-                    title   = "Carlos M. · Domiciliario",
+                    keys = arrayOf("courier"),
+                    state = courierMarkerState,
+                    title = "Carlos M. · Domiciliario",
                     snippet = serviceCategory ?: "Domicilio en camino"
                 ) {
                     DeliveryMarkerPin(
-                        icon            = Icons.Rounded.TwoWheeler,
+                        icon = Icons.Rounded.TwoWheeler,
                         backgroundColor = Color(0xFF1565C0),
-                        pinSize         = 46
+                        pinSize = 46
                     )
                 }
 
@@ -691,21 +740,21 @@ private fun MapContent(
                         )
                         val distKm = r[0] / 1_000f
                         val distStr = if (distKm < 1f) "${r[0].toInt()} m"
-                                      else "${"%.1f".format(distKm)} km"
+                        else "${"%.1f".format(distKm)} km"
                         "${poi.detail} · $distStr"
                     } else poi.detail
 
                     val (poiIcon, poiColor) = when (poi.category) {
-                        PoiCategory.CLINICA   -> Icons.Rounded.LocalHospital to Color(0xFF1B5E20)
-                        PoiCategory.SPA       -> Icons.Rounded.Spa           to Color(0xFF6A1B9A)
+                        PoiCategory.CLINICA -> Icons.Rounded.LocalHospital to Color(0xFF1B5E20)
+                        PoiCategory.SPA -> Icons.Rounded.Spa to Color(0xFF6A1B9A)
                         PoiCategory.DOMICILIO -> Icons.Rounded.DeliveryDining to Color(0xFFE65100)
                     }
 
                     key(poi.id) {
                         MarkerComposable(
-                            keys    = arrayOf(poi.id),
-                            state   = rememberMarkerState(position = poi.position),
-                            title   = poi.name,
+                            keys = arrayOf(poi.id),
+                            state = rememberMarkerState(position = poi.position),
+                            title = poi.name,
                             snippet = distanceSnippet,
                             onClick = { _ ->
                                 selectedService = poi.service
@@ -713,9 +762,9 @@ private fun MapContent(
                             }
                         ) {
                             DeliveryMarkerPin(
-                                icon            = poiIcon,
+                                icon = poiIcon,
                                 backgroundColor = poiColor,
-                                pinSize         = 36
+                                pinSize = 36
                             )
                         }
                     }
@@ -727,19 +776,19 @@ private fun MapContent(
         if (deliveryRequested) {
             if (isRouteLoading) {
                 Row(
-                    modifier              = Modifier
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp),
-                    verticalAlignment     = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     LinearProgressIndicator(
-                        modifier   = Modifier.weight(1f),
-                        color      = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.weight(1f),
+                        color = MaterialTheme.colorScheme.primary,
                         trackColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                     Text(
-                        text  = "Calculando ruta ...",
+                        text = "Calculando ruta ...",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -747,10 +796,10 @@ private fun MapContent(
             } else {
                 DeliveryStatusCard(
                     serviceCategory = serviceCategory,
-                    simStep         = simStep,
-                    totalSteps      = activeRoute.size,
-                    etaSeconds      = displayEtaSeconds,
-                    simArrived      = simArrived
+                    simStep = simStep,
+                    totalSteps = activeRoute.size,
+                    etaSeconds = displayEtaSeconds,
+                    simArrived = simArrived
                 )
             }
         } else {
@@ -758,8 +807,8 @@ private fun MapContent(
             val svc = selectedService
             if (svc != null) {
                 ServiceActionCard(
-                    service           = svc,
-                    onDismiss         = { selectedService = null },
+                    service = svc,
+                    onDismiss = { selectedService = null },
                     onBookAppointment = if (onBookAppointment != null) {
                         { onBookAppointment(svc) }
                     } else null,
@@ -772,48 +821,46 @@ private fun MapContent(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Tarjeta de acción al seleccionar un servicio del mapa (modo exploración)
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Tarjeta de acción al seleccionar un servicio del mapa (modo exploración)
+ 
 @Composable
 private fun ServiceActionCard(
-    service           : Service,
-    onDismiss         : () -> Unit,
-    onBookAppointment : (() -> Unit)? = null,
-    onRequestDelivery : (() -> Unit)? = null
+    service: Service,
+    onDismiss: () -> Unit,
+    onBookAppointment: (() -> Unit)? = null,
+    onRequestDelivery: (() -> Unit)? = null
 ) {
     val (catIcon, catColor) = when (service.category) {
-        "Clinicas"    -> Icons.Rounded.LocalHospital  to Color(0xFF1B5E20)
-        "Spa"         -> Icons.Rounded.Spa             to Color(0xFF6A1B9A)
-        "A domicilio" -> Icons.Rounded.DeliveryDining  to Color(0xFFE65100)
-        else          -> Icons.Rounded.LocalHospital   to Color(0xFF1B5E20)
+        "Clinicas" -> Icons.Rounded.LocalHospital to Color(0xFF1B5E20)
+        "Spa" -> Icons.Rounded.Spa to Color(0xFF6A1B9A)
+        "A domicilio" -> Icons.Rounded.DeliveryDining to Color(0xFFE65100)
+        else -> Icons.Rounded.LocalHospital to Color(0xFF1B5E20)
     }
 
     Card(
-        modifier  = Modifier.fillMaxWidth(),
-        shape     = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
 
             // ── Encabezado: icono + nombre + botón cerrar ────────────────────
             Row(
-                modifier          = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
-                    shape    = CircleShape,
-                    color    = catColor.copy(alpha = 0.12f),
+                    shape = CircleShape,
+                    color = catColor.copy(alpha = 0.12f),
                     modifier = Modifier.size(44.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector        = catIcon,
+                            imageVector = catIcon,
                             contentDescription = null,
-                            tint               = catColor,
-                            modifier           = Modifier.size(22.dp)
+                            tint = catColor,
+                            modifier = Modifier.size(22.dp)
                         )
                     }
                 }
@@ -822,26 +869,26 @@ private fun ServiceActionCard(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text       = service.name,
-                        style      = MaterialTheme.typography.titleSmall,
+                        text = service.name,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text  = service.description,
+                        text = service.description,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
                 IconButton(
-                    onClick  = onDismiss,
+                    onClick = onDismiss,
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
-                        imageVector        = Icons.Rounded.Close,
+                        imageVector = Icons.Rounded.Close,
                         contentDescription = "Cerrar",
-                        modifier           = Modifier.size(18.dp),
-                        tint               = MaterialTheme.colorScheme.onSurfaceVariant
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -854,18 +901,18 @@ private fun ServiceActionCard(
                 // "Solicitar cita" — siempre visible si hay callback
                 if (onBookAppointment != null) {
                     OutlinedButton(
-                        onClick  = onBookAppointment,
+                        onClick = onBookAppointment,
                         modifier = Modifier.weight(1f),
-                        shape    = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Icon(
-                            imageVector        = Icons.Rounded.CalendarMonth,
+                            imageVector = Icons.Rounded.CalendarMonth,
                             contentDescription = null,
-                            modifier           = Modifier.size(16.dp)
+                            modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text  = "Solicitar cita",
+                            text = "Solicitar cita",
                             style = MaterialTheme.typography.labelMedium
                         )
                     }
@@ -874,18 +921,18 @@ private fun ServiceActionCard(
                 // "A domicilio" — solo si el servicio lo soporta y hay callback
                 if (onRequestDelivery != null) {
                     Button(
-                        onClick  = onRequestDelivery,
+                        onClick = onRequestDelivery,
                         modifier = Modifier.weight(1f),
-                        shape    = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Icon(
-                            imageVector        = Icons.Rounded.DeliveryDining,
+                            imageVector = Icons.Rounded.DeliveryDining,
                             contentDescription = null,
-                            modifier           = Modifier.size(16.dp)
+                            modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text  = "A domicilio",
+                            text = "A domicilio",
                             style = MaterialTheme.typography.labelMedium
                         )
                     }
@@ -895,22 +942,20 @@ private fun ServiceActionCard(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Tarjeta de estado del domicilio
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Tarjeta de estado del domicilio
+ 
 @Composable
 private fun DeliveryStatusCard(
     serviceCategory: String?,
-    simStep        : Int,
-    totalSteps     : Int,
-    etaSeconds     : Int,
-    simArrived     : Boolean
+    simStep: Int,
+    totalSteps: Int,
+    etaSeconds: Int,
+    simArrived: Boolean
 ) {
     Card(
-        modifier  = Modifier.fillMaxWidth(),
-        shape     = RoundedCornerShape(16.dp),
-        colors    = CardDefaults.cardColors(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
             containerColor = if (simArrived)
                 MaterialTheme.colorScheme.primaryContainer
             else
@@ -923,24 +968,24 @@ private fun DeliveryStatusCard(
             if (simArrived) {
                 // ── Domicilio entregado ──────────────────────────────────────
                 Row(
-                    verticalAlignment     = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     Icon(
-                        imageVector        = Icons.Rounded.CheckCircle,
+                        imageVector = Icons.Rounded.CheckCircle,
                         contentDescription = null,
-                        tint               = MaterialTheme.colorScheme.primary,
-                        modifier           = Modifier.size(38.dp)
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(38.dp)
                     )
                     Column {
                         Text(
-                            text       = "¡Tu domicilio llegó!",
-                            style      = MaterialTheme.typography.titleMedium,
+                            text = "¡Tu domicilio llegó!",
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color      = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
-                            text  = "Carlos M. está en la puerta",
+                            text = "Carlos M. está en la puerta",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -952,16 +997,16 @@ private fun DeliveryStatusCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
 
                     Surface(
-                        shape    = CircleShape,
-                        color    = MaterialTheme.colorScheme.primaryContainer,
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primaryContainer,
                         modifier = Modifier.size(46.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
-                                text       = "C",
+                                text = "C",
                                 fontWeight = FontWeight.Bold,
-                                fontSize   = 20.sp,
-                                color      = MaterialTheme.colorScheme.primary
+                                fontSize = 20.sp,
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
@@ -970,22 +1015,22 @@ private fun DeliveryStatusCard(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text       = "Carlos M.",
-                            style      = MaterialTheme.typography.titleSmall,
+                            text = "Carlos M.",
+                            style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold
                         )
                         Row(
-                            verticalAlignment     = Alignment.CenterVertically,
+                            verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Icon(
-                                imageVector        = Icons.Rounded.DeliveryDining,
+                                imageVector = Icons.Rounded.DeliveryDining,
                                 contentDescription = null,
-                                modifier           = Modifier.size(14.dp),
-                                tint               = MaterialTheme.colorScheme.onSurfaceVariant
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text  = "Moto  •  ZXC-890",
+                                text = "Moto  •  ZXC-890",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -996,13 +1041,13 @@ private fun DeliveryStatusCard(
                         val min = etaSeconds / 60
                         val sec = etaSeconds % 60
                         Text(
-                            text       = "%02d:%02d".format(min, sec),
-                            style      = MaterialTheme.typography.titleMedium,
+                            text = "%02d:%02d".format(min, sec),
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color      = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text  = "restante",
+                            text = "restante",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -1015,19 +1060,19 @@ private fun DeliveryStatusCard(
                 val progress = simStep.toFloat() / segments.toFloat()
 
                 LinearProgressIndicator(
-                    progress   = { progress },
-                    modifier   = Modifier
+                    progress = { progress },
+                    modifier = Modifier
                         .fillMaxWidth()
                         .height(5.dp)
                         .clip(RoundedCornerShape(3.dp)),
-                    color      = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.primary,
                     trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text  = "${serviceCategory ?: "Domicilio"} en camino  •  ${(progress * 100).toInt()}% del trayecto",
+                    text = "${serviceCategory ?: "Domicilio"} en camino  •  ${(progress * 100).toInt()}% del trayecto",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -1036,10 +1081,8 @@ private fun DeliveryStatusCard(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Helpers
+ 
 @Composable
 private fun rememberMapStyle(context: android.content.Context, rawResId: Int): MapStyleOptions? {
     return remember(context, rawResId) {
@@ -1049,22 +1092,23 @@ private fun rememberMapStyle(context: android.content.Context, rawResId: Int): M
 
 @Composable
 private fun CategoryFilters(
-    selectedCategory   : PoiCategory?,
-    onCategorySelected : (PoiCategory?) -> Unit
+    selectedCategory: PoiCategory?,
+    onCategorySelected: (PoiCategory?) -> Unit
 ) {
-    val options = listOf<PoiCategory?>(null, PoiCategory.CLINICA, PoiCategory.SPA, PoiCategory.DOMICILIO)
+    val options =
+        listOf<PoiCategory?>(null, PoiCategory.CLINICA, PoiCategory.SPA, PoiCategory.DOMICILIO)
 
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(options) { option ->
             FilterChip(
                 selected = selectedCategory == option,
-                onClick  = { onCategorySelected(option) },
-                label    = {
+                onClick = { onCategorySelected(option) },
+                label = {
                     Text(
                         when (option) {
-                            null                  -> "Todos"
-                            PoiCategory.CLINICA   -> "Clínicas"
-                            PoiCategory.SPA       -> "Spas"
+                            null -> "Todos"
+                            PoiCategory.CLINICA -> "Clínicas"
+                            PoiCategory.SPA -> "Spas"
                             PoiCategory.DOMICILIO -> "A domicilio"
                         }
                     )
@@ -1074,16 +1118,14 @@ private fun CategoryFilters(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Marcador personalizado
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Marcador personalizado
+ 
 @Composable
 private fun DeliveryMarkerPin(
-    icon            : ImageVector,
-    backgroundColor : Color,
-    tint            : Color = Color.White,
-    pinSize         : Int   = 40
+    icon: ImageVector,
+    backgroundColor: Color,
+    tint: Color = Color.White,
+    pinSize: Int = 40
 ) {
     val sizeDp = pinSize.dp
 
@@ -1106,10 +1148,10 @@ private fun DeliveryMarkerPin(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector        = icon,
+                    imageVector = icon,
                     contentDescription = null,
-                    tint               = tint,
-                    modifier           = Modifier.size(sizeDp * 0.55f)
+                    tint = tint,
+                    modifier = Modifier.size(sizeDp * 0.55f)
                 )
             }
         }

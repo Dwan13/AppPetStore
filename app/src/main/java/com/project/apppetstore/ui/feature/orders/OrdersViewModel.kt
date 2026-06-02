@@ -14,16 +14,16 @@ import com.google.firebase.firestore.Query
 import com.project.apppetstore.data.model.Order
 
 data class OrdersUiState(
-    val orders    : List<Order> = emptyList(),
-    val isLoading : Boolean     = true
+    val orders: List<Order> = emptyList(),
+    val isLoading: Boolean = true
 )
 
 class OrdersViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val auth         = FirebaseAuth.getInstance()
-    private val firestore    = FirebaseFirestore.getInstance()
-    private var listenerReg  : ListenerRegistration? = null
-    private val authListener : FirebaseAuth.AuthStateListener
+    private val auth = FirebaseAuth.getInstance()
+    private val firestore = FirebaseFirestore.getInstance()
+    private var listenerReg: ListenerRegistration? = null
+    private val authListener: FirebaseAuth.AuthStateListener
 
     var uiState by mutableStateOf(OrdersUiState())
         private set
@@ -54,16 +54,16 @@ class OrdersViewModel(app: Application) : AndroidViewModel(app) {
     fun placeOrder(order: Order) {
         val uid = auth.currentUser?.uid ?: return
         val map = mapOf(
-            "productId"        to order.productId,
-            "productName"      to order.productName,
-            "productImageUrl"  to order.productImageUrl,
-            "quantity"         to order.quantity,
-            "unitPrice"        to order.unitPrice,
-            "total"            to order.total,
-            "address"          to order.address,
-            "paymentMethod"    to order.paymentMethod,
-            "status"           to order.status,
-            "timestamp"        to order.timestamp
+            "productId" to order.productId,
+            "productName" to order.productName,
+            "productImageUrl" to order.productImageUrl,
+            "quantity" to order.quantity,
+            "unitPrice" to order.unitPrice,
+            "total" to order.total,
+            "address" to order.address,
+            "paymentMethod" to order.paymentMethod,
+            "status" to order.status,
+            "timestamp" to order.timestamp
         )
         firestore
             .collection("users").document(uid)
@@ -79,9 +79,9 @@ class OrdersViewModel(app: Application) : AndroidViewModel(app) {
             .collection("notifications")
             .add(
                 mapOf(
-                    "title"     to "Pedido confirmado",
-                    "message"   to "Tu pedido de ${order.productName} fue recibido y está siendo procesado.",
-                    "type"      to "order",
+                    "title" to "Pedido confirmado",
+                    "message" to "Tu pedido de ${order.productName} fue recibido y está siendo procesado.",
+                    "type" to "order",
                     "timestamp" to System.currentTimeMillis()
                 )
             )
@@ -103,17 +103,17 @@ class OrdersViewModel(app: Application) : AndroidViewModel(app) {
                 val orders = snap?.documents?.mapNotNull { doc ->
                     runCatching {
                         Order(
-                            id              = doc.id,
-                            productId       = doc.getString("productId")      ?: "",
-                            productName     = doc.getString("productName")    ?: "",
+                            id = doc.id,
+                            productId = doc.getString("productId") ?: "",
+                            productName = doc.getString("productName") ?: "",
                             productImageUrl = doc.getString("productImageUrl"),
-                            quantity        = (doc.getLong("quantity") ?: 1L).toInt(),
-                            unitPrice       = doc.getDouble("unitPrice")      ?: 0.0,
-                            total           = doc.getDouble("total")          ?: 0.0,
-                            address         = doc.getString("address")        ?: "",
-                            paymentMethod   = doc.getString("paymentMethod")  ?: "",
-                            status          = doc.getString("status")         ?: "Confirmado",
-                            timestamp       = doc.getLong("timestamp")        ?: 0L
+                            quantity = (doc.getLong("quantity") ?: 1L).toInt(),
+                            unitPrice = doc.getDouble("unitPrice") ?: 0.0,
+                            total = doc.getDouble("total") ?: 0.0,
+                            address = doc.getString("address") ?: "",
+                            paymentMethod = doc.getString("paymentMethod") ?: "",
+                            status = doc.getString("status") ?: "Confirmado",
+                            timestamp = doc.getLong("timestamp") ?: 0L
                         )
                     }.getOrNull()
                 } ?: emptyList()

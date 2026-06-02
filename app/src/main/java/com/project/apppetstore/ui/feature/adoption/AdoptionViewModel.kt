@@ -24,17 +24,17 @@ import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 data class AdoptionUiState(
-    val pets              : List<Pet>         = emptyList(),
-    val messages          : List<ChatMessage> = emptyList(),
-    val currentInput      : String            = "",
-    val pendingAttachment : ChatAttachment?   = null,
-    val isUploading       : Boolean           = false,
-    val isLoadingMessages : Boolean           = true,
-    val isLoadingPets     : Boolean           = true,
+    val pets: List<Pet> = emptyList(),
+    val messages: List<ChatMessage> = emptyList(),
+    val currentInput: String = "",
+    val pendingAttachment: ChatAttachment? = null,
+    val isUploading: Boolean = false,
+    val isLoadingMessages: Boolean = true,
+    val isLoadingPets: Boolean = true,
     /** UID del dueño si el chat es con un usuario real; null = auto-reply del sistema. */
-    val currentPetOwnerUid: String?           = null,
+    val currentPetOwnerUid: String? = null,
     /** true cuando el dueño abre el chat directamente desde una notificación. */
-    val isOwnerViewingChat: Boolean           = false
+    val isOwnerViewingChat: Boolean = false
 )
 
 class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
@@ -44,8 +44,8 @@ class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
         private const val AUTO_REPLY_MAX_DELAY_MS = 1200L
     }
 
-    private val auth       = FirebaseAuth.getInstance()
-    private val firestore  = FirebaseFirestore.getInstance()
+    private val auth = FirebaseAuth.getInstance()
+    private val firestore = FirebaseFirestore.getInstance()
     private val storageRef = FirebaseStorage.getInstance().reference
 
     var uiState by mutableStateOf(AdoptionUiState())
@@ -97,19 +97,19 @@ class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
                 val userPets = snap?.documents?.mapNotNull { doc ->
                     runCatching {
                         Pet(
-                            id           = doc.id,
-                            name         = doc.getString("name")        ?: return@runCatching null,
-                            age          = doc.getString("age")         ?: "",
-                            breed        = doc.getString("breed")       ?: "",
-                            gender       = doc.getString("gender")      ?: "",
-                            size         = doc.getString("size")        ?: "",
-                            health       = doc.getString("health")      ?: "",
-                            vaccines     = doc.getString("vaccines")    ?: "",
-                            personality  = doc.getString("personality") ?: "",
-                            requirements = doc.getString("requirements")?: "",
-                            imageUrl     = doc.getString("imageUrl"),
-                            imageRes     = null,
-                            ownerUid     = doc.getString("ownerUid")
+                            id = doc.id,
+                            name = doc.getString("name") ?: return@runCatching null,
+                            age = doc.getString("age") ?: "",
+                            breed = doc.getString("breed") ?: "",
+                            gender = doc.getString("gender") ?: "",
+                            size = doc.getString("size") ?: "",
+                            health = doc.getString("health") ?: "",
+                            vaccines = doc.getString("vaccines") ?: "",
+                            personality = doc.getString("personality") ?: "",
+                            requirements = doc.getString("requirements") ?: "",
+                            imageUrl = doc.getString("imageUrl"),
+                            imageRes = null,
+                            ownerUid = doc.getString("ownerUid")
                         )
                     }.getOrNull()
                 } ?: emptyList()
@@ -121,7 +121,7 @@ class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
     /** Combina el catálogo admin con las mascotas de usuarios, sin duplicados. */
     private fun mergePets(userListings: List<Pet>) {
         val adminIds = adminPets.map { it.id }.toSet()
-        val merged   = adminPets + userListings.filter { it.id !in adminIds }
+        val merged = adminPets + userListings.filter { it.id !in adminIds }
         uiState = uiState.copy(pets = merged, isLoadingPets = false)
     }
 
@@ -144,7 +144,7 @@ class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
         uiState = uiState.copy(
             currentPetOwnerUid = null,   // él ES el dueño, no notifica a nadie
             isOwnerViewingChat = true,
-            isLoadingMessages  = true
+            isLoadingMessages = true
         )
         if (shouldReload || messagesListener == null) {
             listenToMessages(chatId)
@@ -169,7 +169,7 @@ class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
 
-        val pet      = uiState.pets.find { it.id == petId }
+        val pet = uiState.pets.find { it.id == petId }
         val ownerUid = pet?.ownerUid
 
         // Si la mascota tiene dueño y ese dueño NO soy yo → chat bidireccional
@@ -204,22 +204,22 @@ class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
                 if (error != null) return@addSnapshotListener
 
                 val messages = snapshot?.documents?.mapNotNull { doc ->
-                    val rawType    = doc.getString("attachmentType")
+                    val rawType = doc.getString("attachmentType")
                     val attachType = rawType?.let {
                         runCatching { AttachmentType.valueOf(it) }.getOrNull()
                     }
-                    val attachUrl  = doc.getString("attachmentUrl")
-                    val senderId   = doc.getString("senderId") ?: ""
+                    val attachUrl = doc.getString("attachmentUrl")
+                    val senderId = doc.getString("senderId") ?: ""
 
                     ChatMessage(
-                        id         = doc.id,
-                        message    = doc.getString("message") ?: "",
-                        isUser     = senderId == currentUid,
+                        id = doc.id,
+                        message = doc.getString("message") ?: "",
+                        isUser = senderId == currentUid,
                         attachment = if (attachType != null && !attachUrl.isNullOrBlank()) {
                             ChatAttachment(type = attachType, uri = attachUrl)
                         } else null,
-                        timestamp  = doc.getLong("timestamp") ?: 0L,
-                        senderId   = senderId
+                        timestamp = doc.getLong("timestamp") ?: 0L,
+                        senderId = senderId
                     )
                 } ?: emptyList()
 
@@ -244,18 +244,18 @@ class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
     // ── Enviar mensaje ──────────────────────────────────────────────────────
 
     fun sendMessage() {
-        val uid        = auth.currentUser?.uid ?: return
-        val chatId     = currentChatId         ?: return
-        val text       = uiState.currentInput.trim()
+        val uid = auth.currentUser?.uid ?: return
+        val chatId = currentChatId ?: return
+        val text = uiState.currentInput.trim()
         val attachment = uiState.pendingAttachment
-        val ownerUid   = uiState.currentPetOwnerUid
+        val ownerUid = uiState.currentPetOwnerUid
 
         if (text.isEmpty() && attachment == null) return
 
         uiState = uiState.copy(
-            currentInput      = "",
+            currentInput = "",
             pendingAttachment = null,
-            isUploading       = attachment != null
+            isUploading = attachment != null
         )
 
         val isOwnerChat = uiState.isOwnerViewingChat
@@ -267,9 +267,13 @@ class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
             upsertChatHeader(chatId, uid, previewText)
             saveMessage(chatId, uid, text, null)
             when {
-                ownerUid   != null -> notifyPetOwner(ownerUid, chatId, text) // interesado → notifica al dueño
-                !isOwnerChat       -> triggerAutoReply(chatId)                // mascota admin → auto-reply
-                else               -> resolveOwnerRequest(chatId)              // dueño responde → cierra solicitud
+                ownerUid != null -> notifyPetOwner(
+                    ownerUid,
+                    chatId,
+                    text
+                ) // interesado → notifica al dueño
+                !isOwnerChat -> triggerAutoReply(chatId)                // mascota admin → auto-reply
+                else -> resolveOwnerRequest(chatId)              // dueño responde → cierra solicitud
             }
         }
     }
@@ -297,7 +301,7 @@ class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
                 saveMessage(chatId, uid, text, uploaded)
                 if (ownerUid != null) notifyPetOwner(ownerUid, chatId, text.ifBlank { "[adjunto]" })
                 else if (!isOwnerChat) triggerAutoReply(chatId)
-                else                    resolveOwnerRequest(chatId)
+                else resolveOwnerRequest(chatId)
                 uiState = uiState.copy(isUploading = false)
             }
             .addOnFailureListener {
@@ -307,16 +311,23 @@ class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
 
     // ── Guardar mensaje ─────────────────────────────────────────────────────
 
-    private fun saveMessage(chatId: String, uid: String, text: String, attachment: ChatAttachment?) {
+    private fun saveMessage(
+        chatId: String,
+        uid: String,
+        text: String,
+        attachment: ChatAttachment?
+    ) {
         firestore.collection("chats").document(chatId).collection("messages")
-            .add(hashMapOf(
-                "message"        to text,
-                "isUser"         to true,
-                "senderId"       to uid,
-                "timestamp"      to System.currentTimeMillis(),
-                "attachmentType" to attachment?.type?.name,
-                "attachmentUrl"  to attachment?.uri
-            ))
+            .add(
+                hashMapOf(
+                    "message" to text,
+                    "isUser" to true,
+                    "senderId" to uid,
+                    "timestamp" to System.currentTimeMillis(),
+                    "attachmentType" to attachment?.type?.name,
+                    "attachmentUrl" to attachment?.uri
+                )
+            )
     }
 
     fun deleteMessage(messageId: String) {
@@ -340,10 +351,10 @@ class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
 
     // Mantiene un resumen del chat para listarlo rápido en Mis Mascotas.
     private fun upsertChatHeader(chatId: String, senderUid: String, preview: String) {
-        val now   = System.currentTimeMillis()
+        val now = System.currentTimeMillis()
         val parts = chatId.split("_", limit = 3)
         val isPetChat = parts.size == 3 && parts[2].isNotBlank()
-        val petId     = if (isPetChat) parts[2] else null
+        val petId = if (isPetChat) parts[2] else null
 
         val participants = if (isPetChat) {
             listOf(parts[0], parts[1]).distinct()
@@ -377,20 +388,22 @@ class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
     // ── Notificar al dueño (solo primera vez) ───────────────────────────────
 
     private fun notifyPetOwner(ownerUid: String, chatId: String, preview: String) {
-        val petId   = chatId.substringAfterLast("_")
+        val petId = chatId.substringAfterLast("_")
         val petName = uiState.pets.find { it.id == petId }?.name ?: "tu mascota"
 
         firestore.collection("users").document(ownerUid)
             .collection("notifications")
-            .add(mapOf(
-                "title"     to "Alguien está interesado en $petName",
-                "message"   to "\"${preview.take(80)}\"",
-                "type"      to "pet",
-                "chatId"    to chatId,
-                "senderId"  to (auth.currentUser?.uid ?: ""),
-                "resolved"  to false,
-                "timestamp" to System.currentTimeMillis()
-            ))
+            .add(
+                mapOf(
+                    "title" to "Alguien está interesado en $petName",
+                    "message" to "\"${preview.take(80)}\"",
+                    "type" to "pet",
+                    "chatId" to chatId,
+                    "senderId" to (auth.currentUser?.uid ?: ""),
+                    "resolved" to false,
+                    "timestamp" to System.currentTimeMillis()
+                )
+            )
     }
 
     // Cuando el dueño responde, las solicitudes de ese chat se consideran atendidas.
@@ -408,10 +421,12 @@ class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
                 val now = System.currentTimeMillis()
                 val batch: WriteBatch = firestore.batch()
                 snap.documents.forEach { doc ->
-                    batch.update(doc.reference, mapOf(
-                        "resolved" to true,
-                        "resolvedAt" to now
-                    ))
+                    batch.update(
+                        doc.reference, mapOf(
+                            "resolved" to true,
+                            "resolvedAt" to now
+                        )
+                    )
                 }
                 batch.commit()
             }
@@ -423,14 +438,16 @@ class AdoptionViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             delay(Random.nextLong(AUTO_REPLY_MIN_DELAY_MS, AUTO_REPLY_MAX_DELAY_MS + 1))
             firestore.collection("chats").document(chatId).collection("messages")
-                .add(hashMapOf(
-                    "message"        to "¡Gracias por tu mensaje! Pronto te contactaremos.",
-                    "isUser"         to false,
-                    "senderId"       to "system",
-                    "timestamp"      to System.currentTimeMillis(),
-                    "attachmentType" to null,
-                    "attachmentUrl"  to null
-                ))
+                .add(
+                    hashMapOf(
+                        "message" to "¡Gracias por tu mensaje! Pronto te contactaremos.",
+                        "isUser" to false,
+                        "senderId" to "system",
+                        "timestamp" to System.currentTimeMillis(),
+                        "attachmentType" to null,
+                        "attachmentUrl" to null
+                    )
+                )
         }
     }
 }

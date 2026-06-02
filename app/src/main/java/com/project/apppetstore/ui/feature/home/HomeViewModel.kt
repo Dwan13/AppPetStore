@@ -17,15 +17,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 data class HomeUiState(
-    val filters           : List<String>  = emptyList(),
-    val selectedFilter    : String        = "Todos",
-    val services          : List<Service> = emptyList(),
-    val pets              : List<Pet>     = emptyList(),
-    val isLoading         : Boolean       = true,
+    val filters: List<String> = emptyList(),
+    val selectedFilter: String = "Todos",
+    val services: List<Service> = emptyList(),
+    val pets: List<Pet> = emptyList(),
+    val isLoading: Boolean = true,
     /** true una vez que recibimos coordenadas GPS del usuario */
-    val hasLocation       : Boolean       = false,
+    val hasLocation: Boolean = false,
     /** true mientras los servicios se cargan desde Firestore */
-    val isServicesLoading : Boolean       = true
+    val isServicesLoading: Boolean = true
 )
 
 class HomeViewModel(app: Application) : AndroidViewModel(app) {
@@ -37,20 +37,20 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
     private val settingsRepo = SettingsRepository.getInstance(app)
 
     /** Radio actual en km (reactivo vía SettingsRepository). */
-    private var nearbyRadiusKm : Double = settingsRepo.searchRadius.value.toDouble()
+    private var nearbyRadiusKm: Double = settingsRepo.searchRadius.value.toDouble()
 
     /** Última posición GPS conocida (para re-filtrar al cambiar el radio). */
-    private var lastLat : Double? = null
-    private var lastLng : Double? = null
+    private var lastLat: Double? = null
+    private var lastLng: Double? = null
 
-    private var allServices    : List<Service> = emptyList()
-    private var nearbyServices : List<Service> = emptyList()
-    private var hasLocation    = false
-    private var currentFilter  = "Todos"
+    private var allServices: List<Service> = emptyList()
+    private var nearbyServices: List<Service> = emptyList()
+    private var hasLocation = false
+    private var currentFilter = "Todos"
 
     /** Ubicación recibida antes de que los servicios terminen de cargar. */
-    private var pendingLat : Double? = null
-    private var pendingLng : Double? = null
+    private var pendingLat: Double? = null
+    private var pendingLng: Double? = null
 
     var uiState by mutableStateOf(HomeUiState())
         private set
@@ -89,7 +89,7 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
                 MockPetShopRepository.getServices().sortedByDescending { it.rating }
             }
             uiState = uiState.copy(
-                filters           = listOf("Todos") + allServices.map { it.category }.distinct(),
+                filters = listOf("Todos") + allServices.map { it.category }.distinct(),
                 isServicesLoading = false
             )
 
@@ -97,7 +97,7 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
             val pLat = pendingLat
             val pLng = pendingLng
             if (pLat != null && pLng != null) applyLocationFilter(pLat, pLng)
-            else                               applyFilter()
+            else applyFilter()
         }
     }
 
@@ -131,19 +131,19 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
             .filter { it.lat != 0.0 && it.distanceKm <= nearbyRadiusKm }
             .sortedBy { it.distanceKm }
         hasLocation = true
-        pendingLat  = null
-        pendingLng  = null
+        pendingLat = null
+        pendingLng = null
         applyFilter()
     }
 
     private fun applyFilter() {
-        val base     = if (hasLocation) nearbyServices else allServices
+        val base = if (hasLocation) nearbyServices else allServices
         val filtered = if (currentFilter == "Todos") base
-                       else base.filter { it.category == currentFilter }
+        else base.filter { it.category == currentFilter }
         uiState = uiState.copy(
             selectedFilter = currentFilter,
-            services       = filtered,
-            hasLocation    = hasLocation
+            services = filtered,
+            hasLocation = hasLocation
         )
     }
 

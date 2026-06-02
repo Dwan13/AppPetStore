@@ -96,10 +96,8 @@ fun AdoptionScreen(
     modifier: Modifier = Modifier,
     selectedPetId: String? = null,
     onPetSelected: (String) -> Unit = {},
-    // UC-25: navegar al detalle de la mascota sorpresa
     onNavigateToPet: (String) -> Unit = {},
     onBack: () -> Unit = {},
-    // UC-25/26: sensor ViewModel compartido con PetDetailScreen
     sensorViewModel: SensorViewModel = viewModel(),
     // Favoritos — ViewModel con persistencia real en Firestore
     favoritesViewModel: FavoritesViewModel = viewModel(),
@@ -109,7 +107,7 @@ fun AdoptionScreen(
     val context = LocalContext.current
     val packageManager = context.packageManager
 
-    // ── UC-25/26: setup del sensor en esta pantalla ───────────────────────────
+    // setup del sensor en esta pantalla ───────────────────────────
     val sensorState by sensorViewModel.state.collectAsState()
     DisposableEffect(Unit) {
         sensorViewModel.setup(context)
@@ -117,7 +115,7 @@ fun AdoptionScreen(
         onDispose { sensorViewModel.stopListening() }
     }
 
-    // ── UC-25: escuchar el evento de "agitar" ─────────────────────────────────
+    // escuchar el evento de "agitar" ─────────────────────────────────
     var shakeDiscoverPet by remember { mutableStateOf<Pet?>(null) }
     LaunchedEffect(sensorViewModel) {
         sensorViewModel.shakeEvent.collect {
@@ -128,7 +126,8 @@ fun AdoptionScreen(
         }
     }
 
-    val petsToShow = if (selectedPetId != null) uiState.pets.filter { it.id == selectedPetId } else uiState.pets
+    val petsToShow =
+        if (selectedPetId != null) uiState.pets.filter { it.id == selectedPetId } else uiState.pets
     // isFavorite deriva del estado real de Firestore (FavoritesViewModel)
     val favoritesState = favoritesViewModel.uiState
     val isFavorite = selectedPetId != null && selectedPetId in favoritesState.favoritePetIds
@@ -299,19 +298,19 @@ fun AdoptionScreen(
     // ── Vista del dueño: chat directo desde notificación ────────────────────
     if (isOwnerViewingChat) {
         OwnerChatView(
-            uiState                   = uiState,
-            onBack                    = onBack,
-            onInputChange             = onInputChange,
-            onSendMessage             = onSendMessage,
-            onDeleteMessage           = onDeleteMessage,
+            uiState = uiState,
+            onBack = onBack,
+            onInputChange = onInputChange,
+            onSendMessage = onSendMessage,
+            onDeleteMessage = onDeleteMessage,
             onRemovePendingAttachment = onRemovePendingAttachment,
-            onTakePhoto               = onTakePhoto,
-            onPickImage               = onPickImage,
-            onRecordVideo             = onRecordVideo,
-            onPickVideo               = onPickVideo,
-            onRecordAudio             = onRecordAudio,
-            onPickAudio               = onPickAudio,
-            modifier                  = modifier
+            onTakePhoto = onTakePhoto,
+            onPickImage = onPickImage,
+            onRecordVideo = onRecordVideo,
+            onPickVideo = onPickVideo,
+            onRecordAudio = onRecordAudio,
+            onPickAudio = onPickAudio,
+            modifier = modifier
         )
         return
     }
@@ -321,7 +320,9 @@ fun AdoptionScreen(
             .then(
                 // En detalle de mascota quitamos el padding lateral para que ocupe todo el ancho
                 if (selectedPet == null)
-                    Modifier.padding(horizontal = 16.dp).padding(top = 16.dp, bottom = 8.dp)
+                    Modifier
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 16.dp, bottom = 8.dp)
                 else
                     Modifier
             ),
@@ -351,7 +352,7 @@ fun AdoptionScreen(
                 onPickVideo = onPickVideo,
                 onRecordAudio = onRecordAudio,
                 onPickAudio = onPickAudio,
-                // UC-26: giroscopio para el parallax del hero
+                //   giroscopio para el parallax del hero
                 gyroX = sensorState.gyroX,
                 gyroY = sensorState.gyroY
             )
@@ -390,8 +391,8 @@ fun AdoptionScreen(
                             highlightedPetIndex = index
                             onPetSelected(pet.id)
                         },
-                    image           = pet.imageRes?.let { painterResource(it) },
-                    isFavorite      = pet.id in favoritesState.favoritePetIds,
+                    image = pet.imageRes?.let { painterResource(it) },
+                    isFavorite = pet.id in favoritesState.favoritePetIds,
                     onFavoriteClick = { favoritesViewModel.toggleFavorite(pet.id) }
                 )
             }
@@ -426,7 +427,7 @@ fun AdoptionScreen(
     // "Agitar para descubrir"
     shakeDiscoverPet?.let { pet ->
         ShakeDiscoverBottomSheet(
-            pet       = pet,
+            pet = pet,
             onDismiss = { shakeDiscoverPet = null },
             onViewProfile = {
                 shakeDiscoverPet = null
@@ -436,25 +437,22 @@ fun AdoptionScreen(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Vista del dueño: responde a solicitudes de adopción desde notificación
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun OwnerChatView(
-    uiState                   : AdoptionUiState,
-    onBack                    : () -> Unit,
-    onInputChange             : (String) -> Unit,
-    onSendMessage             : () -> Unit,
-    onDeleteMessage           : (String) -> Unit,
-    onRemovePendingAttachment : () -> Unit,
-    onTakePhoto               : () -> Unit,
-    onPickImage               : () -> Unit,
-    onRecordVideo             : () -> Unit,
-    onPickVideo               : () -> Unit,
-    onRecordAudio             : () -> Unit,
-    onPickAudio               : () -> Unit,
-    modifier                  : Modifier = Modifier
+    uiState: AdoptionUiState,
+    onBack: () -> Unit,
+    onInputChange: (String) -> Unit,
+    onSendMessage: () -> Unit,
+    onDeleteMessage: (String) -> Unit,
+    onRemovePendingAttachment: () -> Unit,
+    onTakePhoto: () -> Unit,
+    onPickImage: () -> Unit,
+    onRecordVideo: () -> Unit,
+    onPickVideo: () -> Unit,
+    onRecordAudio: () -> Unit,
+    onPickAudio: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val cs = androidx.compose.material3.MaterialTheme.colorScheme
     val tt = androidx.compose.material3.MaterialTheme.typography
@@ -462,25 +460,25 @@ private fun OwnerChatView(
     Column(modifier = modifier.fillMaxSize()) {
         // ── TopBar ──────────────────────────────────────────────────────────
         Row(
-            modifier          = Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             androidx.compose.material3.IconButton(onClick = onBack) {
                 Icon(
-                    imageVector        = androidx.compose.material.icons.Icons.AutoMirrored.Rounded.ArrowBack,
+                    imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "Volver"
                 )
             }
             Column {
                 androidx.compose.material3.Text(
-                    text  = "Solicitud de adopción",
+                    text = "Solicitud de adopción",
                     style = tt.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
                 androidx.compose.material3.Text(
-                    text  = "Un usuario está interesado en tu mascota",
+                    text = "Un usuario está interesado en tu mascota",
                     style = tt.bodySmall,
                     color = cs.onSurfaceVariant
                 )
@@ -491,30 +489,28 @@ private fun OwnerChatView(
         // ── Chat ─────────────────────────────────────────────────────────────
         Box(modifier = Modifier.weight(1f)) {
             ChatSection(
-                messages                  = uiState.messages,
-                currentInput              = uiState.currentInput,
-                pendingAttachment         = uiState.pendingAttachment,
-                isUploading               = uiState.isUploading,
-                isLoadingMessages         = uiState.isLoadingMessages,
-                onInputChange             = onInputChange,
-                onSendMessage             = onSendMessage,
-                onDeleteMessage           = onDeleteMessage,
+                messages = uiState.messages,
+                currentInput = uiState.currentInput,
+                pendingAttachment = uiState.pendingAttachment,
+                isUploading = uiState.isUploading,
+                isLoadingMessages = uiState.isLoadingMessages,
+                onInputChange = onInputChange,
+                onSendMessage = onSendMessage,
+                onDeleteMessage = onDeleteMessage,
                 onRemovePendingAttachment = onRemovePendingAttachment,
-                onTakePhoto               = onTakePhoto,
-                onPickImage               = onPickImage,
-                onRecordVideo             = onRecordVideo,
-                onPickVideo               = onPickVideo,
-                onRecordAudio             = onRecordAudio,
-                onPickAudio               = onPickAudio
+                onTakePhoto = onTakePhoto,
+                onPickImage = onPickImage,
+                onRecordVideo = onRecordVideo,
+                onPickVideo = onPickVideo,
+                onRecordAudio = onRecordAudio,
+                onPickAudio = onPickAudio
             )
         }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// "Mascota sorpresa"
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // "Mascota sorpresa"
+ 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ShakeDiscoverBottomSheet(
@@ -576,17 +572,23 @@ private fun ShakeDiscoverBottomSheet(
                             imageUrl = pet.imageUrl,
                             contentDescription = pet.name,
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(140.dp).clip(CircleShape),
+                            modifier = Modifier
+                                .size(140.dp)
+                                .clip(CircleShape),
                             placeholderRes = R.drawable.ic_user_round
                         )
+
                     pet.imageRes != null -> {
                         androidx.compose.foundation.Image(
                             painter = painterResource(pet.imageRes),
                             contentDescription = pet.name,
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(140.dp).clip(CircleShape)
+                            modifier = Modifier
+                                .size(140.dp)
+                                .clip(CircleShape)
                         )
                     }
+
                     else ->
                         Text(
                             pet.name.take(1).uppercase(),
@@ -610,27 +612,75 @@ private fun ShakeDiscoverBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (pet.age.isNotBlank()) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                        Icon(Icons.Rounded.Cake, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(pet.age, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
+                        Icon(
+                            Icons.Rounded.Cake,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            pet.age,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
                 if (pet.breed.isNotBlank()) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                        Icon(Icons.Rounded.Pets, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(pet.breed, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
+                        Icon(
+                            Icons.Rounded.Pets,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            pet.breed,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
                 if (pet.gender.isNotBlank()) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                        Icon(Icons.Rounded.Wc, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(pet.gender, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
+                        Icon(
+                            Icons.Rounded.Wc,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            pet.gender,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
                 if (pet.size.isNotBlank()) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                        Icon(Icons.Rounded.Height, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(pet.size, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
+                        Icon(
+                            Icons.Rounded.Height,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            pet.size,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }

@@ -47,12 +47,12 @@ import java.util.Locale
 
 @Composable
 fun NotificationsScreen(
-    uiState              : NotificationsUiState,
-    onBack               : () -> Unit,
-    onMarkAllSeen        : () -> Unit,
-    lastSeenTimestamp    : Long,
-    onNotificationClick  : (AppNotification) -> Unit = {},
-    modifier             : Modifier = Modifier
+    uiState: NotificationsUiState,
+    onBack: () -> Unit,
+    onMarkAllSeen: () -> Unit,
+    lastSeenTimestamp: Long,
+    onNotificationClick: (AppNotification) -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
     // Marcar como leídas en cuanto se abre la pantalla
     LaunchedEffect(Unit) { onMarkAllSeen() }
@@ -61,7 +61,7 @@ fun NotificationsScreen(
 
         // ── Top bar ──────────────────────────────────────────────────────────
         Row(
-            modifier          = Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -70,8 +70,8 @@ fun NotificationsScreen(
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Volver")
             }
             Text(
-                text       = "Notificaciones",
-                style      = MaterialTheme.typography.titleLarge,
+                text = "Notificaciones",
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
         }
@@ -82,14 +82,16 @@ fun NotificationsScreen(
         when {
             uiState.isLoading -> {
                 Box(
-                    modifier         = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) { CircularProgressIndicator() }
             }
 
             uiState.notifications.isEmpty() -> {
                 Box(
-                    modifier         = Modifier.fillMaxSize().padding(32.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(32.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
@@ -97,21 +99,21 @@ fun NotificationsScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Icon(
-                            imageVector        = Icons.Rounded.Notifications,
+                            imageVector = Icons.Rounded.Notifications,
                             contentDescription = null,
-                            tint               = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier           = Modifier.size(56.dp)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(56.dp)
                         )
                         Text(
-                            text       = "Sin notificaciones",
-                            style      = MaterialTheme.typography.titleMedium,
+                            text = "Sin notificaciones",
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
-                            textAlign  = TextAlign.Center
+                            textAlign = TextAlign.Center
                         )
                         Text(
-                            text      = "Aquí aparecerán las promociones\ny novedades para ti",
-                            style     = MaterialTheme.typography.bodyMedium,
-                            color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                            text = "Aquí aparecerán las promociones\ny novedades para ti",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -120,14 +122,14 @@ fun NotificationsScreen(
 
             else -> {
                 LazyColumn(
-                    modifier            = Modifier.fillMaxSize(),
-                    contentPadding      = PaddingValues(16.dp),
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(uiState.notifications, key = { it.id }) { notif ->
                         NotificationItem(
-                            notification    = notif,
-                            isUnread        = notif.timestamp > lastSeenTimestamp,
+                            notification = notif,
+                            isUnread = notif.timestamp > lastSeenTimestamp,
                             onNotificationClick = { onNotificationClick(notif) }
                         )
                     }
@@ -137,15 +139,13 @@ fun NotificationsScreen(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Tarjeta de notificación
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Tarjeta de notificación
+ 
 @Composable
 private fun NotificationItem(
-    notification        : AppNotification,
-    isUnread            : Boolean,
-    onNotificationClick : () -> Unit = {}
+    notification: AppNotification,
+    isUnread: Boolean,
+    onNotificationClick: () -> Unit = {}
 ) {
     val isNavigable = notification.type == "pet" && notification.chatId != null
     val dateStr = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
@@ -157,47 +157,47 @@ private fun NotificationItem(
         MaterialTheme.colorScheme.surface
 
     ElevatedCard(
-        modifier  = Modifier
+        modifier = Modifier
             .fillMaxWidth()
             .then(if (isNavigable) Modifier.clickable { onNotificationClick() } else Modifier),
-        shape     = MaterialTheme.shapes.large,
+        shape = MaterialTheme.shapes.large,
         elevation = CardDefaults.elevatedCardElevation(
             defaultElevation = if (isUnread) 3.dp else 1.dp
         )
     ) {
         Row(
-            modifier              = Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .background(cardBg)
                 .padding(14.dp),
-            verticalAlignment     = Alignment.Top,
+            verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Ícono del tipo de notificación
             Surface(
-                shape    = CircleShape,
-                color    = when (notification.type) {
-                    "order"       -> MaterialTheme.colorScheme.secondaryContainer
+                shape = CircleShape,
+                color = when (notification.type) {
+                    "order" -> MaterialTheme.colorScheme.secondaryContainer
                     "appointment" -> MaterialTheme.colorScheme.primaryContainer
-                    "pet"         -> MaterialTheme.colorScheme.tertiaryContainer
-                    else          -> MaterialTheme.colorScheme.surfaceVariant
+                    "pet" -> MaterialTheme.colorScheme.tertiaryContainer
+                    else -> MaterialTheme.colorScheme.surfaceVariant
                 },
                 modifier = Modifier.size(44.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = when (notification.type) {
-                            "order"       -> Icons.Rounded.ShoppingCart
+                            "order" -> Icons.Rounded.ShoppingCart
                             "appointment" -> Icons.Rounded.CalendarMonth
-                            "pet"         -> Icons.Rounded.Pets
-                            else          -> Icons.Rounded.LocalOffer
+                            "pet" -> Icons.Rounded.Pets
+                            else -> Icons.Rounded.LocalOffer
                         },
                         contentDescription = null,
                         tint = when (notification.type) {
-                            "order"       -> MaterialTheme.colorScheme.onSecondaryContainer
+                            "order" -> MaterialTheme.colorScheme.onSecondaryContainer
                             "appointment" -> MaterialTheme.colorScheme.onPrimaryContainer
-                            "pet"         -> MaterialTheme.colorScheme.onTertiaryContainer
-                            else          -> MaterialTheme.colorScheme.onSurfaceVariant
+                            "pet" -> MaterialTheme.colorScheme.onTertiaryContainer
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
                         },
                         modifier = Modifier.size(22.dp)
                     )
@@ -207,15 +207,15 @@ private fun NotificationItem(
             // Texto
             Column(modifier = Modifier.weight(1f)) {
                 Row(
-                    modifier              = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment     = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text       = notification.title,
-                        style      = MaterialTheme.typography.titleSmall,
+                        text = notification.title,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = if (isUnread) FontWeight.Bold else FontWeight.Medium,
-                        modifier   = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f)
                     )
                     // Punto azul de no leído
                     if (isUnread) {
@@ -231,7 +231,7 @@ private fun NotificationItem(
                 }
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text  = notification.message,
+                    text = notification.message,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -242,7 +242,7 @@ private fun NotificationItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text  = dateStr,
+                        text = dateStr,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -253,7 +253,7 @@ private fun NotificationItem(
                             horizontalArrangement = Arrangement.spacedBy(2.dp)
                         ) {
                             Text(
-                                text  = "Ver chat",
+                                text = "Ver chat",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary
                             )

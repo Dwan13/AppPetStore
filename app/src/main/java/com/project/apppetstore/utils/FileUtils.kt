@@ -13,7 +13,7 @@ import java.io.File
 
 private const val FILE_UTILS_TAG = "FileUtils"
 
-fun createTempImageFileInInternalPicturesFolder(name:String, context: Context): Uri {
+fun createTempImageFileInInternalPicturesFolder(name: String, context: Context): Uri {
     val tmpFile = File.createTempFile(
         name,
         ".jpg",
@@ -27,7 +27,7 @@ fun createTempImageFileInInternalPicturesFolder(name:String, context: Context): 
     )
 }
 
-fun createImageOnPhotosFolder(name:String, context: Context): ImageCapture.OutputFileOptions {
+fun createImageOnPhotosFolder(name: String, context: Context): ImageCapture.OutputFileOptions {
     val contentValues = ContentValues().apply {
         put(MediaStore.Images.Media.DISPLAY_NAME, name)
         put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
@@ -46,7 +46,10 @@ fun createVideoOnMoviesFolder(name: String, context: Context): Uri? {
             val contentValues = ContentValues().apply {
                 put(MediaStore.Video.Media.DISPLAY_NAME, "$name.mp4")
                 put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-                put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/AppPetStore")
+                put(
+                    MediaStore.Video.Media.RELATIVE_PATH,
+                    Environment.DIRECTORY_MOVIES + "/AppPetStore"
+                )
             }
 
             context.contentResolver.insert(

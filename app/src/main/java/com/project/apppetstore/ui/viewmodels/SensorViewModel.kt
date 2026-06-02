@@ -21,7 +21,7 @@ data class SensorUiState(
     val isLightSensorAvailable: Boolean = false,
     val accelerometerMagnitude: Float? = null,
     val gyroscopeMagnitude: Float? = null,
-    // ── UC-26: valores separados del giroscopio, suavizados con lerp ──────────
+    // ──   valores separados del giroscopio, suavizados con lerp ──────────
     val gyroX: Float = 0f,
     val gyroY: Float = 0f,
     val lightLux: Float? = null,
@@ -32,7 +32,7 @@ class SensorViewModel : ViewModel(), SensorEventListener {
     private val _uiState = MutableStateFlow(SensorUiState())
     val state = _uiState.asStateFlow()
 
-    // ── UC-25: SharedFlow para disparar el evento "agitar" a la UI ───────────
+    // ──   SharedFlow para disparar el evento "agitar" a la UI ───────────
     private val _shakeEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val shakeEvent: SharedFlow<Unit> = _shakeEvent.asSharedFlow()
 
@@ -43,10 +43,11 @@ class SensorViewModel : ViewModel(), SensorEventListener {
     private var isListening = false
 
     private var lastAccelUpdateMs = 0L
-    private var lastGyroUpdateMs  = 0L
+    private var lastGyroUpdateMs = 0L
     private var lastLightUpdateMs = 0L
-    // UC-25: último instante de shake para el debounce de 2 segundos
-    private var lastShakeMs       = 0L
+
+    //   último instante de shake para el debounce de 2 segundos
+    private var lastShakeMs = 0L
 
     fun setup(context: Context) {
         if (sensorManager != null) return
@@ -98,7 +99,7 @@ class SensorViewModel : ViewModel(), SensorEventListener {
 
                 _uiState.update { it.copy(accelerometerMagnitude = magnitude) }
 
-                // UC-25: disparar shake si supera el umbral con debounce de 2 s
+                //   disparar shake si supera el umbral con debounce de 2 s
                 if (magnitude > 15.5f && now - lastShakeMs > 2_000L) {
                     lastShakeMs = now
                     _shakeEvent.tryEmit(Unit)
@@ -114,7 +115,7 @@ class SensorViewModel : ViewModel(), SensorEventListener {
                 val z = currentEvent.values.getOrNull(2) ?: return
                 val magnitude = sqrt((x * x + y * y + z * z).toDouble()).toFloat()
 
-                // UC-26: lerp con alpha = 0.15 para suavizar movimiento
+                //   lerp con alpha = 0.15 para suavizar movimiento
                 val alpha = 0.15f
                 _uiState.update { prev ->
                     prev.copy(

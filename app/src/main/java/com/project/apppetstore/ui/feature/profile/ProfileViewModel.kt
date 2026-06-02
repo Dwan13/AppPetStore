@@ -26,9 +26,9 @@ data class ProfileUiState(
 
 class ProfileViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val auth        = FirebaseAuth.getInstance()
-    private val firestore   = FirebaseFirestore.getInstance()
-    private val storageRef  = FirebaseStorage.getInstance().reference
+    private val auth = FirebaseAuth.getInstance()
+    private val firestore = FirebaseFirestore.getInstance()
+    private val storageRef = FirebaseStorage.getInstance().reference
 
     private val _uiState = MutableStateFlow(
         ProfileUiState(
@@ -36,7 +36,7 @@ class ProfileViewModel(app: Application) : AndroidViewModel(app) {
             user = auth.currentUser?.let { fu ->
                 UserProfile(
                     fullName = fu.displayName ?: fu.email?.substringBefore("@") ?: "Usuario",
-                    email    = fu.email ?: "",
+                    email = fu.email ?: "",
                     profilePhotoUri = fu.photoUrl?.toString()
                 )
             }
@@ -77,11 +77,11 @@ class ProfileViewModel(app: Application) : AndroidViewModel(app) {
                         ?.takeIf { it.isNotBlank() }
                         ?: firebaseUser.photoUrl?.toString(),
                     petProfile = PetProfile(
-                        name     = petData?.get("name")     as? String ?: "Bobby",
-                        species  = petData?.get("species")  as? String ?: "Perro",
-                        age      = petData?.get("age")      as? String ?: "3 años",
+                        name = petData?.get("name") as? String ?: "Bobby",
+                        species = petData?.get("species") as? String ?: "Perro",
+                        age = petData?.get("age") as? String ?: "3 años",
                         photoUri = (petData?.get("photoUrl") as? String)?.takeIf { it.isNotBlank() },
-                        traits   = petTraits
+                        traits = petTraits
                     )
                 )
                 _uiState.update { it.copy(isLoading = false, user = profile) }
@@ -107,15 +107,15 @@ class ProfileViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun saveUserToFirestore(uid: String, user: UserProfile) {
         val data = hashMapOf(
-            "fullName"        to user.fullName,
-            "email"           to user.email,
+            "fullName" to user.fullName,
+            "email" to user.email,
             "profilePhotoUrl" to (user.profilePhotoUri ?: ""),
-            "petProfile"      to hashMapOf(
-                "name"     to user.petProfile.name,
-                "species"  to user.petProfile.species,
-                "age"      to user.petProfile.age,
+            "petProfile" to hashMapOf(
+                "name" to user.petProfile.name,
+                "species" to user.petProfile.species,
+                "age" to user.petProfile.age,
                 "photoUrl" to (user.petProfile.photoUri ?: ""),
-                "traits"   to user.petProfile.traits
+                "traits" to user.petProfile.traits
             )
         )
         firestore.collection("users").document(uid).set(data)
@@ -202,7 +202,10 @@ class ProfileViewModel(app: Application) : AndroidViewModel(app) {
             }
             .addOnFailureListener { e ->
                 _uiState.update {
-                    it.copy(isLoading = false, error = "Error al subir foto de perfil: ${e.message}")
+                    it.copy(
+                        isLoading = false,
+                        error = "Error al subir foto de perfil: ${e.message}"
+                    )
                 }
             }
     }
@@ -230,7 +233,10 @@ class ProfileViewModel(app: Application) : AndroidViewModel(app) {
             }
             .addOnFailureListener { e ->
                 _uiState.update {
-                    it.copy(isLoading = false, error = "Error al subir foto de mascota: ${e.message}")
+                    it.copy(
+                        isLoading = false,
+                        error = "Error al subir foto de mascota: ${e.message}"
+                    )
                 }
             }
     }
@@ -271,26 +277,34 @@ class ProfileViewModel(app: Application) : AndroidViewModel(app) {
     private fun friendlyError(message: String?): String = when {
         message?.contains("email address is already in use") == true ->
             "Este correo ya está registrado. ¿Ya tienes cuenta? Inicia sesión."
+
         message?.contains("INVALID_LOGIN_CREDENTIALS") == true ||
-        message?.contains("password is invalid") == true ||
-        message?.contains("no user record") == true ||
-        message?.contains("INVALID_EMAIL") == true ->
+                message?.contains("password is invalid") == true ||
+                message?.contains("no user record") == true ||
+                message?.contains("INVALID_EMAIL") == true ->
             "Correo o contraseña incorrectos. Verifica tus datos."
+
         message?.contains("badly formatted") == true ->
             "El correo no tiene un formato válido"
+
         message?.contains("password should be at least") == true ||
-        message?.contains("weak-password") == true ->
+                message?.contains("weak-password") == true ->
             "La contraseña es demasiado débil. Usa mínimo 8 caracteres, un número y una mayúscula."
+
         message?.contains("user-not-found") == true ->
             "No existe una cuenta con este correo"
+
         message?.contains("too-many-requests") == true ||
-        message?.contains("too many attempts") == true ->
+                message?.contains("too many attempts") == true ->
             "Demasiados intentos fallidos. Espera unos minutos."
+
         message?.contains("network") == true ||
-        message?.contains("NETWORK") == true ->
+                message?.contains("NETWORK") == true ->
             "Sin conexión a internet. Revisa tu red."
+
         message?.contains("account-exists-with-different-credential") == true ->
             "Este correo ya está registrado con otro método de inicio de sesión."
+
         else -> "Error de autenticación. Intenta de nuevo."
     }
 }

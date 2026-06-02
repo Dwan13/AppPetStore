@@ -30,54 +30,52 @@ import com.google.firebase.auth.AuthCredential
 import com.project.apppetstore.R
 import kotlinx.coroutines.launch
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Validation helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Validation helpers
+ 
 private fun emailError(email: String): String? = when {
-    email.isBlank()                                              -> "El correo es obligatorio"
-    !Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()      -> "Ingresa un correo válido (ej: usuario@mail.com)"
-    else                                                         -> null
+    email.isBlank() -> "El correo es obligatorio"
+    !Patterns.EMAIL_ADDRESS.matcher(email.trim())
+        .matches() -> "Ingresa un correo válido (ej: usuario@mail.com)"
+
+    else -> null
 }
 
 private fun loginPasswordError(password: String): String? = when {
     password.isBlank() -> "La contraseña es obligatoria"
     password.length < 6 -> "Mínimo 6 caracteres"
-    else               -> null
+    else -> null
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Screen
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Screen
+ 
 @Composable
 fun LoginScreen(
-    uiState             : ProfileUiState,
-    onLoginWithEmail    : (String, String) -> Unit,
-    onSignInWithGoogle  : (AuthCredential) -> Unit,
+    uiState: ProfileUiState,
+    onLoginWithEmail: (String, String) -> Unit,
+    onSignInWithGoogle: (AuthCredential) -> Unit,
     onNavigateToRegister: () -> Unit,
-    onClearError        : () -> Unit,
-    modifier            : Modifier = Modifier
+    onClearError: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val context      = LocalContext.current
-    val scope        = rememberCoroutineScope()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
 
     // ── Campos ────────────────────────────────────────────────────────────────
-    var email           by remember { mutableStateOf("") }
-    var password        by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var googleError     by remember { mutableStateOf<String?>(null) }
+    var googleError by remember { mutableStateOf<String?>(null) }
 
     // ── Errores de campo (solo visibles tras el primer intento de envío) ──────
-    var emailFieldError    by remember { mutableStateOf<String?>(null) }
+    var emailFieldError by remember { mutableStateOf<String?>(null) }
     var passwordFieldError by remember { mutableStateOf<String?>(null) }
-    var hasAttempted       by remember { mutableStateOf(false) }
+    var hasAttempted by remember { mutableStateOf(false) }
 
     // Re-valida en tiempo real una vez que el usuario ya intentó enviar
     fun revalidate() {
         if (hasAttempted) {
-            emailFieldError    = emailError(email)
+            emailFieldError = emailError(email)
             passwordFieldError = loginPasswordError(password)
         }
     }
@@ -87,7 +85,7 @@ fun LoginScreen(
         focusManager.clearFocus()
         val eErr = emailError(email)
         val pErr = loginPasswordError(password)
-        emailFieldError    = eErr
+        emailFieldError = eErr
         passwordFieldError = pErr
         if (eErr == null && pErr == null) {
             onLoginWithEmail(email.trim(), password)
@@ -95,7 +93,7 @@ fun LoginScreen(
     }
 
     Box(
-        modifier        = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -103,19 +101,19 @@ fun LoginScreen(
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 28.dp, vertical = 48.dp),
-            verticalArrangement  = Arrangement.spacedBy(12.dp),
-            horizontalAlignment  = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
             // ── Logo / título ─────────────────────────────────────────────────
             Text(
-                text       = "AppPetStore",
-                style      = MaterialTheme.typography.headlineLarge,
+                text = "AppPetStore",
+                style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
-                color      = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text  = "Inicia sesión para continuar",
+                text = "Inicia sesión para continuar",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -124,20 +122,20 @@ fun LoginScreen(
 
             // ── Correo ────────────────────────────────────────────────────────
             OutlinedTextField(
-                value         = email,
+                value = email,
                 onValueChange = {
                     email = it
                     onClearError()
                     // Si ya hay un error visible, lo actualiza en tiempo real
                     if (emailFieldError != null) emailFieldError = emailError(it)
                 },
-                label          = { Text("Correo electrónico") },
-                singleLine     = true,
-                isError        = emailFieldError != null,
+                label = { Text("Correo electrónico") },
+                singleLine = true,
+                isError = emailFieldError != null,
                 supportingText = emailFieldError?.let { err -> { Text(err) } },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
-                    imeAction    = ImeAction.Next
+                    imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
                     onNext = { focusManager.moveFocus(FocusDirection.Down) }
@@ -154,22 +152,22 @@ fun LoginScreen(
 
             // ── Contraseña ────────────────────────────────────────────────────
             OutlinedTextField(
-                value         = password,
+                value = password,
                 onValueChange = {
                     password = it
                     onClearError()
                     // Si ya hay un error visible, lo actualiza en tiempo real
                     if (passwordFieldError != null) passwordFieldError = loginPasswordError(it)
                 },
-                label                = { Text("Contraseña") },
-                singleLine           = true,
-                isError              = passwordFieldError != null,
-                supportingText       = passwordFieldError?.let { err -> { Text(err) } },
+                label = { Text("Contraseña") },
+                singleLine = true,
+                isError = passwordFieldError != null,
+                supportingText = passwordFieldError?.let { err -> { Text(err) } },
                 visualTransformation = if (passwordVisible)
                     VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
-                    imeAction    = ImeAction.Done
+                    imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(onDone = { attemptLogin() }),
                 trailingIcon = {
@@ -194,14 +192,14 @@ fun LoginScreen(
             // ── Error de Firebase ─────────────────────────────────────────────
             AnimatedVisibility(visible = uiState.error != null) {
                 Surface(
-                    shape  = MaterialTheme.shapes.small,
-                    color  = MaterialTheme.colorScheme.errorContainer,
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.errorContainer,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text     = uiState.error ?: "",
-                        color    = MaterialTheme.colorScheme.onErrorContainer,
-                        style    = MaterialTheme.typography.bodySmall,
+                        text = uiState.error ?: "",
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                     )
                 }
@@ -211,17 +209,17 @@ fun LoginScreen(
 
             // ── Botón de login ────────────────────────────────────────────────
             Button(
-                onClick  = { attemptLogin() },
+                onClick = { attemptLogin() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
                 enabled = !uiState.isLoading,
-                shape   = MaterialTheme.shapes.medium
+                shape = MaterialTheme.shapes.medium
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(
-                        modifier    = Modifier.size(18.dp),
-                        color       = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(18.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
                         strokeWidth = 2.dp
                     )
                 } else {
@@ -231,12 +229,12 @@ fun LoginScreen(
 
             // ── Divisor ───────────────────────────────────────────────────────
             Row(
-                modifier          = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 HorizontalDivider(modifier = Modifier.weight(1f))
                 Text(
-                    text  = "  o continúa con  ",
+                    text = "  o continúa con  ",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -246,14 +244,14 @@ fun LoginScreen(
             // ── Error de Google Sign-In ───────────────────────────────────────
             AnimatedVisibility(visible = googleError != null) {
                 Surface(
-                    shape    = MaterialTheme.shapes.small,
-                    color    = MaterialTheme.colorScheme.errorContainer,
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.errorContainer,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text     = googleError ?: "",
-                        color    = MaterialTheme.colorScheme.onErrorContainer,
-                        style    = MaterialTheme.typography.bodySmall,
+                        text = googleError ?: "",
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                     )
                 }
@@ -265,11 +263,11 @@ fun LoginScreen(
                     googleError = null
                     scope.launch {
                         launchGoogleSignIn(
-                            context   = context,
+                            context = context,
                             onSuccess = { credential ->
                                 onSignInWithGoogle(credential)
                             },
-                            onError   = { msg -> googleError = msg }
+                            onError = { msg -> googleError = msg }
                         )
                     }
                 },
@@ -277,13 +275,13 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .height(52.dp),
                 enabled = !uiState.isLoading,
-                shape   = MaterialTheme.shapes.medium
+                shape = MaterialTheme.shapes.medium
             ) {
                 Icon(
-                    painter            = painterResource(id = R.drawable.ic_google),
+                    painter = painterResource(id = R.drawable.ic_google),
                     contentDescription = "Google",
-                    modifier           = Modifier.size(20.dp),
-                    tint               = Color.Unspecified
+                    modifier = Modifier.size(20.dp),
+                    tint = Color.Unspecified
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text("Continuar con Google", style = MaterialTheme.typography.labelLarge)
@@ -293,16 +291,16 @@ fun LoginScreen(
 
             // ── Ir a registro ─────────────────────────────────────────────────
             Row(
-                verticalAlignment     = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text  = "¿No tienes cuenta?",
+                    text = "¿No tienes cuenta?",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 TextButton(
-                    onClick        = onNavigateToRegister,
+                    onClick = onNavigateToRegister,
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Text("Regístrate", fontWeight = FontWeight.SemiBold)

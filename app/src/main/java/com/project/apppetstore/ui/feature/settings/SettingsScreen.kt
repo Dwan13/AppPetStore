@@ -34,22 +34,22 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    uiState               : SettingsUiState,
-    onBack                : () -> Unit,
-    onSetSearchRadius     : (Int) -> Unit,
-    onSetDarkTheme        : (Boolean?) -> Unit,
-    onSetNotifications    : (Boolean) -> Unit,
-    modifier              : Modifier = Modifier
+    uiState: SettingsUiState,
+    onBack: () -> Unit,
+    onSetSearchRadius: (Int) -> Unit,
+    onSetDarkTheme: (Boolean?) -> Unit,
+    onSetNotifications: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val radiusOptions = listOf(2, 5, 10, 20)
-    val themeOptions  = listOf<Boolean?>(null, false, true)
-    val themeLabels   = listOf("Sistema", "Claro", "Oscuro")
+    val themeOptions = listOf<Boolean?>(null, false, true)
+    val themeLabels = listOf("Sistema", "Claro", "Oscuro")
 
     Column(modifier = modifier.fillMaxSize()) {
 
         // ── Top bar ──────────────────────────────────────────────────────────
         Row(
-            modifier          = Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -58,8 +58,8 @@ fun SettingsScreen(
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Volver")
             }
             Text(
-                text       = "Configuración",
-                style      = MaterialTheme.typography.titleLarge,
+                text = "Configuración",
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
         }
@@ -82,9 +82,9 @@ fun SettingsScreen(
                     themeOptions.forEachIndexed { index, option ->
                         SegmentedButton(
                             selected = uiState.darkTheme == option,
-                            onClick  = { onSetDarkTheme(option) },
-                            shape    = SegmentedButtonDefaults.itemShape(index, themeOptions.size),
-                            label    = { Text(themeLabels[index]) }
+                            onClick = { onSetDarkTheme(option) },
+                            shape = SegmentedButtonDefaults.itemShape(index, themeOptions.size),
+                            label = { Text(themeLabels[index]) }
                         )
                     }
                 }
@@ -106,9 +106,9 @@ fun SettingsScreen(
                     radiusOptions.forEachIndexed { index, radius ->
                         SegmentedButton(
                             selected = uiState.searchRadiusKm == radius,
-                            onClick  = { onSetSearchRadius(radius) },
-                            shape    = SegmentedButtonDefaults.itemShape(index, radiusOptions.size),
-                            label    = { Text("$radius km") }
+                            onClick = { onSetSearchRadius(radius) },
+                            shape = SegmentedButtonDefaults.itemShape(index, radiusOptions.size),
+                            label = { Text("$radius km") }
                         )
                     }
                 }
@@ -117,12 +117,17 @@ fun SettingsScreen(
             // ── Notificaciones ────────────────────────────────────────────────
             SettingSection(title = "Notificaciones") {
                 Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    verticalAlignment     = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-                        Text("Alertas de citas y pedidos", style = MaterialTheme.typography.bodyMedium)
+                    Column(modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 12.dp)) {
+                        Text(
+                            "Alertas de citas y pedidos",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                         Text(
                             "Recibe avisos sobre el estado de tus servicios y compras",
                             style = MaterialTheme.typography.bodySmall,
@@ -130,7 +135,7 @@ fun SettingsScreen(
                         )
                     }
                     Switch(
-                        checked         = uiState.notificationsEnabled,
+                        checked = uiState.notificationsEnabled,
                         onCheckedChange = onSetNotifications
                     )
                 }
@@ -143,19 +148,19 @@ fun SettingsScreen(
 
 @Composable
 private fun SettingSection(
-    title   : String,
-    content : @Composable ColumnScope.() -> Unit
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            text       = title,
-            style      = MaterialTheme.typography.labelLarge,
+            text = title,
+            style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
-            color      = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary
         )
         ElevatedCard(
-            modifier  = Modifier.fillMaxWidth(),
-            shape     = MaterialTheme.shapes.large,
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.large,
             elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
         ) {
             Column(

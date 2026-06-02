@@ -24,21 +24,21 @@ sealed class PetOperationResult {
 }
 
 data class PetsUiState(
-    val pets               : List<UserPet>       = emptyList(),
-    val isLoading          : Boolean             = true,
-    val isSaving           : Boolean             = false,
-    val operationResult    : PetOperationResult? = null,
+    val pets: List<UserPet> = emptyList(),
+    val isLoading: Boolean = true,
+    val isSaving: Boolean = false,
+    val operationResult: PetOperationResult? = null,
     /** IDs de mascotas cuyo toggle de adopción está en curso (para mostrar loading por tarjeta). */
-    val togglingAdoptionIds: Set<String>         = emptySet()
+    val togglingAdoptionIds: Set<String> = emptySet()
 )
 
 class PetsViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val auth         = FirebaseAuth.getInstance()
-    private val firestore    = FirebaseFirestore.getInstance()
-    private val storage      = FirebaseStorage.getInstance()
-    private var listenerReg  : ListenerRegistration? = null
-    private val authListener : FirebaseAuth.AuthStateListener
+    private val auth = FirebaseAuth.getInstance()
+    private val firestore = FirebaseFirestore.getInstance()
+    private val storage = FirebaseStorage.getInstance()
+    private var listenerReg: ListenerRegistration? = null
+    private val authListener: FirebaseAuth.AuthStateListener
 
     var uiState by mutableStateOf(PetsUiState())
         private set
@@ -46,8 +46,9 @@ class PetsViewModel(app: Application) : AndroidViewModel(app) {
     init {
         authListener = FirebaseAuth.AuthStateListener { fa ->
             val uid = fa.currentUser?.uid
-            if (uid != null) { if (listenerReg == null) listenPets(uid) }
-            else {
+            if (uid != null) {
+                if (listenerReg == null) listenPets(uid)
+            } else {
                 listenerReg?.remove(); listenerReg = null
                 uiState = PetsUiState(isLoading = false)
             }
@@ -70,59 +71,59 @@ class PetsViewModel(app: Application) : AndroidViewModel(app) {
     // ── Agregar mascota ───────────────────────────────────────────────────────
 
     fun addPet(
-        name     : String,
-        species  : String,
-        age      : String,
-        gender   : String,
-        size     : String,
-        health   : String,
-        vaccines : String,
+        name: String,
+        species: String,
+        age: String,
+        gender: String,
+        size: String,
+        health: String,
+        vaccines: String,
         requirements: String,
-        traits   : List<String>,
-        photoUri : Uri? = null
+        traits: List<String>,
+        photoUri: Uri? = null
     ) {
-        val uid   = auth.currentUser?.uid ?: return
+        val uid = auth.currentUser?.uid ?: return
         val petRef = firestore.collection("users").document(uid).collection("pets").document()
-        val petId  = petRef.id
-        val now    = System.currentTimeMillis()
+        val petId = petRef.id
+        val now = System.currentTimeMillis()
 
         // Actualización optimista
         val optimisticPet = UserPet(
-            id        = petId,
-            name      = name,
-            species   = species,
-            age       = age,
-            gender    = gender,
-            size      = size,
-            health    = health,
-            vaccines  = vaccines,
+            id = petId,
+            name = name,
+            species = species,
+            age = age,
+            gender = gender,
+            size = size,
+            health = health,
+            vaccines = vaccines,
             requirements = requirements,
-            traits    = traits,
-            photoUri  = null,
+            traits = traits,
+            photoUri = null,
             createdAt = now
         )
         uiState = uiState.copy(
-            pets            = (uiState.pets + optimisticPet).sortedBy { it.createdAt },
-            isSaving        = true,
+            pets = (uiState.pets + optimisticPet).sortedBy { it.createdAt },
+            isSaving = true,
             operationResult = null
         )
 
         val baseData = mapOf(
-            "name"      to name,
-            "species"   to species,
-            "age"       to age,
-            "gender"    to gender,
-            "size"      to size,
-            "health"    to health,
-            "vaccines"  to vaccines,
+            "name" to name,
+            "species" to species,
+            "age" to age,
+            "gender" to gender,
+            "size" to size,
+            "health" to health,
+            "vaccines" to vaccines,
             "requirements" to requirements,
-            "traits"    to traits,
+            "traits" to traits,
             "createdAt" to now
         )
 
         fun onSaved() {
             uiState = uiState.copy(
-                isSaving        = false,
+                isSaving = false,
                 operationResult = PetOperationResult.Success(
                     "$name fue guardada correctamente."
                 )
@@ -132,8 +133,8 @@ class PetsViewModel(app: Application) : AndroidViewModel(app) {
 
         fun onError(e: Exception, ctx: String) {
             uiState = uiState.copy(
-                pets            = uiState.pets.filter { it.id != petId },
-                isSaving        = false,
+                pets = uiState.pets.filter { it.id != petId },
+                isSaving = false,
                 operationResult = PetOperationResult.Failure(
                     "No se pudo guardar a $name.\n${e.message ?: "Error desconocido"}"
                 )
@@ -175,20 +176,20 @@ class PetsViewModel(app: Application) : AndroidViewModel(app) {
     // ── Editar mascota ────────────────────────────────────────────────────────
 
     fun updatePet(
-        petId    : String,
-        name     : String,
-        species  : String,
-        age      : String,
-        gender   : String,
-        size     : String,
-        health   : String,
-        vaccines : String,
+        petId: String,
+        name: String,
+        species: String,
+        age: String,
+        gender: String,
+        size: String,
+        health: String,
+        vaccines: String,
         requirements: String,
-        traits   : List<String>,
-        photoUri : Uri? = null
+        traits: List<String>,
+        photoUri: Uri? = null
     ) {
-        val uid         = auth.currentUser?.uid ?: return
-        val petRef      = firestore.collection("users").document(uid).collection("pets").document(petId)
+        val uid = auth.currentUser?.uid ?: return
+        val petRef = firestore.collection("users").document(uid).collection("pets").document(petId)
         val previousPet = uiState.pets.find { it.id == petId }
         val shouldSyncAdoptionListing = previousPet?.isAvailableForAdoption == true
 
@@ -206,23 +207,22 @@ class PetsViewModel(app: Application) : AndroidViewModel(app) {
                         requirements = requirements,
                         traits = traits
                     )
-                }
-                else p
+                } else p
             },
-            isSaving        = true,
+            isSaving = true,
             operationResult = null
         )
 
         val baseData = mapOf<String, Any>(
-            "name"    to name,
+            "name" to name,
             "species" to species,
-            "age"     to age,
-            "gender"  to gender,
-            "size"    to size,
-            "health"  to health,
+            "age" to age,
+            "gender" to gender,
+            "size" to size,
+            "health" to health,
             "vaccines" to vaccines,
             "requirements" to requirements,
-            "traits"  to traits
+            "traits" to traits
         )
 
         fun onDone(photoUrl: String?) {
@@ -243,24 +243,25 @@ class PetsViewModel(app: Application) : AndroidViewModel(app) {
                 )
             }
             uiState = uiState.copy(
-                isSaving        = false,
+                isSaving = false,
                 operationResult = PetOperationResult.Success(
                     "Los datos de $name fueron actualizados correctamente."
                 )
             )
         }
+
         fun onErr(e: Exception, ctx: String) {
             previousPet?.let { prev ->
                 uiState = uiState.copy(
-                    pets            = uiState.pets.map { p -> if (p.id == petId) prev else p },
-                    isSaving        = false,
+                    pets = uiState.pets.map { p -> if (p.id == petId) prev else p },
+                    isSaving = false,
                     operationResult = PetOperationResult.Failure(
                         "No se pudo actualizar a $name.\n${e.message ?: "Error desconocido"}"
                     )
                 )
             } ?: run {
                 uiState = uiState.copy(
-                    isSaving        = false,
+                    isSaving = false,
                     operationResult = PetOperationResult.Failure(
                         "No se pudo actualizar a $name.\n${e.message ?: "Error desconocido"}"
                     )
@@ -339,12 +340,12 @@ class PetsViewModel(app: Application) : AndroidViewModel(app) {
     // ── Eliminar mascota ──────────────────────────────────────────────────────
 
     fun deletePet(petId: String) {
-        val uid        = auth.currentUser?.uid ?: return
+        val uid = auth.currentUser?.uid ?: return
         val removedPet = uiState.pets.find { it.id == petId } ?: return
-        val petName    = removedPet.name
+        val petName = removedPet.name
 
         uiState = uiState.copy(
-            pets            = uiState.pets.filter { it.id != petId },
+            pets = uiState.pets.filter { it.id != petId },
             operationResult = null
         )
 
@@ -362,7 +363,7 @@ class PetsViewModel(app: Application) : AndroidViewModel(app) {
             .addOnFailureListener { e ->
                 Log.e("PetsVM", "Error eliminando mascota", e)
                 uiState = uiState.copy(
-                    pets            = (uiState.pets + removedPet).sortedBy { it.createdAt },
+                    pets = (uiState.pets + removedPet).sortedBy { it.createdAt },
                     operationResult = PetOperationResult.Failure(
                         "No se pudo eliminar a $petName.\n${e.message ?: "Error desconocido"}"
                     )
@@ -412,24 +413,24 @@ class PetsViewModel(app: Application) : AndroidViewModel(app) {
 
         if (newValue) {
             val data = mapOf(
-                "name"         to pet.name,
-                "breed"        to pet.species,
-                "age"          to pet.age,
-                "gender"       to pet.gender,
-                "size"         to pet.size,
-                "health"       to pet.health,
-                "vaccines"     to pet.vaccines,
-                "personality"  to pet.traits.joinToString(", "),
+                "name" to pet.name,
+                "breed" to pet.species,
+                "age" to pet.age,
+                "gender" to pet.gender,
+                "size" to pet.size,
+                "health" to pet.health,
+                "vaccines" to pet.vaccines,
+                "personality" to pet.traits.joinToString(", "),
                 "requirements" to pet.requirements,
-                "imageUrl"     to pet.photoUri,
-                "ownerUid"     to uid
+                "imageUrl" to pet.photoUri,
+                "ownerUid" to uid
             )
             listingRef.set(data)
                 .addOnSuccessListener {
                     FirestorePetsRepository.clearCache()
                     uiState = uiState.copy(
                         togglingAdoptionIds = uiState.togglingAdoptionIds - petId,
-                        operationResult     = PetOperationResult.Success(
+                        operationResult = PetOperationResult.Success(
                             "${pet.name} está publicada en adopción. ¡Otros usuarios la verán pronto!"
                         )
                     )
@@ -452,7 +453,7 @@ class PetsViewModel(app: Application) : AndroidViewModel(app) {
                     FirestorePetsRepository.clearCache()
                     uiState = uiState.copy(
                         togglingAdoptionIds = uiState.togglingAdoptionIds - petId,
-                        operationResult     = PetOperationResult.Success(
+                        operationResult = PetOperationResult.Success(
                             "${pet.name} fue retirada del catálogo de adopción."
                         )
                     )
@@ -481,21 +482,22 @@ class PetsViewModel(app: Application) : AndroidViewModel(app) {
                     ?.mapNotNull { doc ->
                         runCatching {
                             UserPet(
-                                id                     = doc.id,
-                                name                   = doc.getString("name")    ?: "",
-                                species                = doc.getString("species") ?: "Perro",
-                                age                    = doc.getString("age")     ?: "",
-                                gender                 = doc.getString("gender") ?: "",
-                                size                   = doc.getString("size") ?: "",
-                                health                 = doc.getString("health") ?: "",
-                                vaccines               = doc.getString("vaccines") ?: "",
-                                requirements           = doc.getString("requirements") ?: "",
-                                photoUri               = doc.getString("photoUri"),
-                                traits                 = (doc.get("traits") as? List<*>)
-                                                             ?.filterIsInstance<String>()
-                                                         ?: emptyList(),
-                                createdAt              = doc.getLong("createdAt") ?: 0L,
-                                isAvailableForAdoption = doc.getBoolean("isAvailableForAdoption") ?: false
+                                id = doc.id,
+                                name = doc.getString("name") ?: "",
+                                species = doc.getString("species") ?: "Perro",
+                                age = doc.getString("age") ?: "",
+                                gender = doc.getString("gender") ?: "",
+                                size = doc.getString("size") ?: "",
+                                health = doc.getString("health") ?: "",
+                                vaccines = doc.getString("vaccines") ?: "",
+                                requirements = doc.getString("requirements") ?: "",
+                                photoUri = doc.getString("photoUri"),
+                                traits = (doc.get("traits") as? List<*>)
+                                    ?.filterIsInstance<String>()
+                                    ?: emptyList(),
+                                createdAt = doc.getLong("createdAt") ?: 0L,
+                                isAvailableForAdoption = doc.getBoolean("isAvailableForAdoption")
+                                    ?: false
                             )
                         }.getOrNull()
                     }

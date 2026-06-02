@@ -24,12 +24,14 @@ import kotlinx.coroutines.tasks.await
  */
 object FirestorePetsRepository {
 
-    private val db         get() = Firebase.firestore
-    private const val COL  = "pets"
+    private val db get() = Firebase.firestore
+    private const val COL = "pets"
+
     /** Colección que los usuarios pueden escribir sin restricciones de admin. */
     const val ADOPTION_COL = "adoptionListings"
 
-    @Volatile private var cache: List<Pet>? = null
+    @Volatile
+    private var cache: List<Pet>? = null
 
     suspend fun getPets(context: Context? = null): List<Pet> {
         cache?.let { return it }
@@ -38,7 +40,9 @@ object FirestorePetsRepository {
         return result
     }
 
-    fun clearCache() { cache = null }
+    fun clearCache() {
+        cache = null
+    }
 
     // ── Carga principal ───────────────────────────────────────────────────────
 
@@ -95,70 +99,74 @@ object FirestorePetsRepository {
 private fun DocumentSnapshot.toPet(): Pet? = try {
     val name = getString("name") ?: return null
     Pet(
-        id           = getString("id")           ?: id,
-        name         = name,
-        age          = getString("age")          ?: "",
-        breed        = getString("breed")        ?: "",
-        gender       = getString("gender")       ?: "",
-        size         = getString("size")         ?: "",
-        health       = getString("health")       ?: "",
-        vaccines     = getString("vaccines")     ?: "",
-        personality  = getString("personality")  ?: "",
+        id = getString("id") ?: id,
+        name = name,
+        age = getString("age") ?: "",
+        breed = getString("breed") ?: "",
+        gender = getString("gender") ?: "",
+        size = getString("size") ?: "",
+        health = getString("health") ?: "",
+        vaccines = getString("vaccines") ?: "",
+        personality = getString("personality") ?: "",
         requirements = getString("requirements") ?: "",
-        imageUrl     = getString("imageUrl"),
-        imageRes     = getString("imageKey").toDrawableRes(),
-        ownerUid     = getString("ownerUid")
+        imageUrl = getString("imageUrl"),
+        imageRes = getString("imageKey").toDrawableRes(),
+        ownerUid = getString("ownerUid")
     )
-} catch (_: Exception) { null }
+} catch (_: Exception) {
+    null
+}
 
 /** Convierte un documento de la colección "adoptionListings" (usuario) en Pet. */
 private fun DocumentSnapshot.toAdoptionListing(): Pet? = try {
     val name = getString("name") ?: return null
     Pet(
-        id           = id,                             // Firestore doc ID = petId del usuario
-        name         = name,
-        age          = getString("age")          ?: "",
-        breed        = getString("breed")        ?: "",
-        gender       = getString("gender")       ?: "",
-        size         = getString("size")         ?: "",
-        health       = getString("health")       ?: "",
-        vaccines     = getString("vaccines")     ?: "",
-        personality  = getString("personality")  ?: "",
+        id = id,                             // Firestore doc ID = petId del usuario
+        name = name,
+        age = getString("age") ?: "",
+        breed = getString("breed") ?: "",
+        gender = getString("gender") ?: "",
+        size = getString("size") ?: "",
+        health = getString("health") ?: "",
+        vaccines = getString("vaccines") ?: "",
+        personality = getString("personality") ?: "",
         requirements = getString("requirements") ?: "",
-        imageUrl     = getString("imageUrl"),
-        imageRes     = null,
-        ownerUid     = getString("ownerUid")
+        imageUrl = getString("imageUrl"),
+        imageRes = null,
+        ownerUid = getString("ownerUid")
     )
-} catch (_: Exception) { null }
+} catch (_: Exception) {
+    null
+}
 
 private fun Pet.toFirestoreMap(): Map<String, Any?> = mapOf(
-    "id"           to id,
-    "name"         to name,
-    "age"          to age,
-    "breed"        to breed,
-    "gender"       to gender,
-    "size"         to size,
-    "health"       to health,
-    "vaccines"     to vaccines,
-    "personality"  to personality,
+    "id" to id,
+    "name" to name,
+    "age" to age,
+    "breed" to breed,
+    "gender" to gender,
+    "size" to size,
+    "health" to health,
+    "vaccines" to vaccines,
+    "personality" to personality,
     "requirements" to requirements,
-    "imageKey"     to imageRes.toImageKey(),
-    "imageUrl"     to imageUrl,
-    "ownerUid"     to ownerUid
+    "imageKey" to imageRes.toImageKey(),
+    "imageUrl" to imageUrl,
+    "ownerUid" to ownerUid
 )
 
 private fun String?.toDrawableRes(): Int? = when (this) {
-    "img_luna"  -> R.drawable.img_luna
-    "img_max"   -> R.drawable.img_max
+    "img_luna" -> R.drawable.img_luna
+    "img_max" -> R.drawable.img_max
     "img_rocky" -> R.drawable.img_rocky
     "img_simba" -> R.drawable.img_simba
-    else        -> null
+    else -> null
 }
 
 private fun Int?.toImageKey(): String = when (this) {
-    R.drawable.img_luna  -> "img_luna"
-    R.drawable.img_max   -> "img_max"
+    R.drawable.img_luna -> "img_luna"
+    R.drawable.img_max -> "img_max"
     R.drawable.img_rocky -> "img_rocky"
     R.drawable.img_simba -> "img_simba"
-    else                 -> ""
+    else -> ""
 }

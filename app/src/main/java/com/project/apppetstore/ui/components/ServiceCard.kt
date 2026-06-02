@@ -49,21 +49,21 @@ fun ServiceCard(
             ) {
                 if (!service.imageUrl.isNullOrBlank()) {
                     AppAsyncImage(
-                        imageUrl           = service.imageUrl,
+                        imageUrl = service.imageUrl,
                         contentDescription = service.name,
-                        contentScale       = ContentScale.Crop,
-                        modifier           = Modifier.fillMaxSize(),
-                        placeholderRes     = R.drawable.ic_user_round
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                        placeholderRes = R.drawable.ic_user_round
                     )
                 } else {
                     val fallbackRes = runCatching {
                         if (service.imageRes != 0) service.imageRes else R.drawable.ic_user_round
                     }.getOrDefault(R.drawable.ic_user_round)
                     Image(
-                        painter            = painterResource(id = fallbackRes),
+                        painter = painterResource(id = fallbackRes),
                         contentDescription = service.name,
-                        contentScale       = ContentScale.Crop,
-                        modifier           = Modifier.fillMaxSize()
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }
@@ -132,7 +132,7 @@ fun ServiceCard(
                     modifier = Modifier.height(36.dp),
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor   = MaterialTheme.colorScheme.onPrimaryContainer
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 ) {
                     Icon(

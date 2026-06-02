@@ -77,16 +77,16 @@ import kotlinx.coroutines.flow.map
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    uiState             : HomeUiState,
-    modifier            : Modifier = Modifier,
-    onPetClick          : ((petId: String) -> Unit)? = null,
-    onFilterSelected    : (String) -> Unit = {},
-    onScheduleService   : (Service) -> Unit = {},
-    onLocationAvailable : (Double, Double) -> Unit = { _, _ -> },
-    favoritePetIds      : Set<String> = emptySet(),
-    onFavoriteToggle    : (String) -> Unit = {}
+    uiState: HomeUiState,
+    modifier: Modifier = Modifier,
+    onPetClick: ((petId: String) -> Unit)? = null,
+    onFilterSelected: (String) -> Unit = {},
+    onScheduleService: (Service) -> Unit = {},
+    onLocationAvailable: (Double, Double) -> Unit = { _, _ -> },
+    favoritePetIds: Set<String> = emptySet(),
+    onFavoriteToggle: (String) -> Unit = {}
 ) {
-    val context     = LocalContext.current
+    val context = LocalContext.current
     val fusedClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val imageLoader = remember { SingletonImageLoader.get(context) }
 
@@ -130,7 +130,7 @@ fun HomeScreen(
         ) == PackageManager.PERMISSION_GRANTED
 
         if (already) tryFetchLocation()
-        else         permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        else permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
     }
 
     // ── Estado local ──────────────────────────────────────────────────────────
@@ -171,18 +171,18 @@ fun HomeScreen(
 
     // Título dinámico de la sección de servicios
     val nearbyTitle = when {
-        uiState.isServicesLoading    -> "Buscando servicios cerca de ti…"
-        !uiState.hasLocation         -> "Servicios disponibles"
-        uiState.services.isEmpty()   -> "Sin servicios en tu zona"
-        uiState.services.size == 1   -> "1 servicio cerca de ti"
+        uiState.isServicesLoading -> "Buscando servicios cerca de ti…"
+        !uiState.hasLocation -> "Servicios disponibles"
+        uiState.services.isEmpty() -> "Sin servicios en tu zona"
+        uiState.services.size == 1 -> "1 servicio cerca de ti"
         else -> "${uiState.services.size} servicios cerca de ti"
     }
 
     // ── Contenido principal ───────────────────────────────────────────────────
     LazyColumn(
-        state               = homeListState,
-        modifier            = modifier,
-        contentPadding      = PaddingValues(16.dp),
+        state = homeListState,
+        modifier = modifier,
+        contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
@@ -193,7 +193,7 @@ fun HomeScreen(
 
         item {
             Text(
-                text  = "Servicios cercanos",
+                text = "Servicios cercanos",
                 style = MaterialTheme.typography.headlineSmall
             )
         }
@@ -208,16 +208,16 @@ fun HomeScreen(
                 ) {
                     items(uiState.filters, key = { it }) { filter ->
                         val icon = when (filter) {
-                            "Clinicas"    -> painterResource(R.drawable.ic_stethoscope)
+                            "Clinicas" -> painterResource(R.drawable.ic_stethoscope)
                             "A domicilio" -> painterResource(R.drawable.ic_house)
-                            "Spa"         -> painterResource(R.drawable.ic_scissors)
-                            else          -> painterResource(R.drawable.ic_stethoscope)
+                            "Spa" -> painterResource(R.drawable.ic_scissors)
+                            else -> painterResource(R.drawable.ic_stethoscope)
                         }
                         FilterChipWithIcon(
                             selected = filter == uiState.selectedFilter,
-                            onClick  = { onFilterSelected(filter) },
-                            label    = filter,
-                            icon     = icon
+                            onClick = { onFilterSelected(filter) },
+                            label = filter,
+                            icon = icon
                         )
                     }
                 }
@@ -232,13 +232,18 @@ fun HomeScreen(
             // pets ya están cargados (itemCount correcto desde el inicio).
             val petsCarouselState = rememberCarouselState { uiState.pets.size }
             HorizontalMultiBrowseCarousel(
-                state              = petsCarouselState,
-                modifier           = Modifier.fillMaxWidth(),
+                state = petsCarouselState,
+                modifier = Modifier.fillMaxWidth(),
                 preferredItemWidth = 208.dp,
-                itemSpacing        = 10.dp,
-                contentPadding     = PaddingValues(start = 10.dp, end = 34.dp, top = 6.dp, bottom = 8.dp)
+                itemSpacing = 10.dp,
+                contentPadding = PaddingValues(
+                    start = 10.dp,
+                    end = 34.dp,
+                    top = 6.dp,
+                    bottom = 8.dp
+                )
             ) { index ->
-                val pet      = uiState.pets[index]
+                val pet = uiState.pets[index]
                 val isActive = highlightedPetIndex == index
 
                 val scale by animateFloatAsState(
@@ -252,8 +257,8 @@ fun HomeScreen(
                 )
 
                 PetCard(
-                    pet             = pet,
-                    modifier        = Modifier
+                    pet = pet,
+                    modifier = Modifier
                         .padding(vertical = 4.dp)
                         .zIndex(if (isActive) 1f else 0f)
                         .offset(y = yOffset)
@@ -263,9 +268,9 @@ fun HomeScreen(
                             highlightedPetIndex = index
                             onPetClick?.invoke(pet.id)
                         },
-                    onClick         = onPetClick?.let { { it(pet.id) } },
-                    image           = pet.imageRes?.let { painterResource(it) },
-                    isFavorite      = pet.id in favoritePetIds,
+                    onClick = onPetClick?.let { { it(pet.id) } },
+                    image = pet.imageRes?.let { painterResource(it) },
+                    isFavorite = pet.id in favoritePetIds,
                     onFavoriteClick = { onFavoriteToggle(pet.id) }
                 )
             }
@@ -279,15 +284,17 @@ fun HomeScreen(
                     ServiceCardSkeleton(modifier = Modifier.padding(top = 4.dp))
                 }
             }
+
             uiState.hasLocation && uiState.services.isEmpty() -> {
                 item { NearbyEmptyState() }
             }
+
             else -> {
                 items(uiState.services, key = { it.id }) { service ->
                     ServiceCard(
-                        service         = service,
+                        service = service,
                         onScheduleClick = { onScheduleService(service) },
-                        modifier        = Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 4.dp)
                     )
@@ -299,12 +306,14 @@ fun HomeScreen(
     if (showMapSheet) {
         ModalBottomSheet(
             onDismissRequest = { showMapSheet = false },
-            sheetState       = mapSheetState
+            sheetState = mapSheetState
         ) {
             MapScreen(
-                modifier          = Modifier.fillMaxWidth().height(560.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(560.dp),
                 deliveryRequested = false,
-                skipPreview       = true,
+                skipPreview = true,
                 onBookAppointment = { service ->
                     showMapSheet = false
                     // Forzamos supportsDelivery=false para ir a cita presencial
@@ -331,49 +340,45 @@ private fun prefetchImageUrls(context: Context, imageLoader: ImageLoader, urls: 
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Estado vacío
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Estado vacío
+ 
 @Composable
 private fun NearbyEmptyState() {
     Column(
-        modifier            = Modifier
+        modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Icon(
-            imageVector        = Icons.Rounded.Search,
+            imageVector = Icons.Rounded.Search,
             contentDescription = null,
-            tint               = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier           = Modifier.size(40.dp)
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(40.dp)
         )
         Text(
-            text  = "No encontramos servicios en tu zona",
+            text = "No encontramos servicios en tu zona",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
-            text  = "Prueba buscar en el mapa para ver más opciones",
+            text = "Prueba buscar en el mapa para ver más opciones",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Banner de acceso al mapa
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Banner de acceso al mapa
+ 
 @Composable
 private fun MapBannerCard(onClick: () -> Unit) {
     ElevatedCard(
-        onClick   = onClick,
-        shape     = MaterialTheme.shapes.large,
+        onClick = onClick,
+        shape = MaterialTheme.shapes.large,
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-        modifier  = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
@@ -387,43 +392,43 @@ private fun MapBannerCard(onClick: () -> Unit) {
                     )
                 )
                 .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment     = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Surface(
-                shape    = CircleShape,
-                color    = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
                 modifier = Modifier.size(52.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
-                        imageVector        = Icons.Rounded.LocationOn,
+                        imageVector = Icons.Rounded.LocationOn,
                         contentDescription = null,
-                        tint               = MaterialTheme.colorScheme.primary,
-                        modifier           = Modifier.size(28.dp)
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text       = "Ver clínicas cercanas",
-                    style      = MaterialTheme.typography.titleMedium,
+                    text = "Ver clínicas cercanas",
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color      = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Text(
-                    text  = "Veterinarias, spas y lugares pet friendly",
+                    text = "Veterinarias, spas y lugares pet friendly",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
 
             Icon(
-                imageVector        = Icons.AutoMirrored.Rounded.ArrowForward,
+                imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
                 contentDescription = null,
-                tint               = MaterialTheme.colorScheme.primary,
-                modifier           = Modifier.size(20.dp)
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
             )
         }
     }

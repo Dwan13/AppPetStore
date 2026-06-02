@@ -7,9 +7,7 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Resultado de la consulta a Directions API
-// ─────────────────────────────────────────────────────────────────────────────
 
 data class DirectionsResult(
     /** Waypoints decodificados de la polilínea. Vacío si falla la solicitud. */
@@ -17,10 +15,7 @@ data class DirectionsResult(
     /** Duración real del trayecto en segundos (0 si no disponible). */
     val durationSeconds: Int
 )
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Servicio — llama a Google Directions API y decodifica la polilínea
-// ─────────────────────────────────────────────────────────────────────────────
 
 object DirectionsService {
 
@@ -35,9 +30,9 @@ object DirectionsService {
      * clave no tiene permiso; en ese caso usa la ruta interpolada como fallback.
      */
     suspend fun getRoute(
-        origin      : LatLng,
-        destination : LatLng,
-        apiKey      : String
+        origin: LatLng,
+        destination: LatLng,
+        apiKey: String
     ): DirectionsResult = withContext(Dispatchers.IO) {
         try {
             val url = buildUrl(origin, destination, apiKey)
@@ -52,18 +47,18 @@ object DirectionsService {
 
     private fun buildUrl(origin: LatLng, destination: LatLng, apiKey: String): String =
         "https://maps.googleapis.com/maps/api/directions/json" +
-            "?origin=${origin.latitude},${origin.longitude}" +
-            "&destination=${destination.latitude},${destination.longitude}" +
-            "&mode=driving" +
-            "&language=es" +
-            "&key=$apiKey"
+                "?origin=${origin.latitude},${origin.longitude}" +
+                "&destination=${destination.latitude},${destination.longitude}" +
+                "&mode=driving" +
+                "&language=es" +
+                "&key=$apiKey"
 
     // ── Llamada HTTP ──────────────────────────────────────────────────────────
 
     private fun fetchJson(urlString: String): String {
         val connection = URL(urlString).openConnection() as HttpURLConnection
         connection.connectTimeout = 8_000
-        connection.readTimeout    = 8_000
+        connection.readTimeout = 8_000
         return try {
             connection.inputStream.bufferedReader().readText()
         } finally {
@@ -74,7 +69,7 @@ object DirectionsService {
     // ── Parseo de la respuesta JSON ───────────────────────────────────────────
 
     private fun parseResponse(json: String): DirectionsResult {
-        val root   = JSONObject(json)
+        val root = JSONObject(json)
         val status = root.getString("status")
 
         if (status != "OK") return DirectionsResult(emptyList(), 0)
@@ -82,10 +77,10 @@ object DirectionsService {
         val routes = root.getJSONArray("routes")
         if (routes.length() == 0) return DirectionsResult(emptyList(), 0)
 
-        val route  = routes.getJSONObject(0)
+        val route = routes.getJSONObject(0)
 
         // Duración total del primer leg
-        val legs            = route.getJSONArray("legs")
+        val legs = route.getJSONArray("legs")
         val durationSeconds = if (legs.length() > 0)
             legs.getJSONObject(0).getJSONObject("duration").getInt("value")
         else 0
@@ -103,30 +98,30 @@ object DirectionsService {
 
     private fun decodePolyline(encoded: String): List<LatLng> {
         val result = mutableListOf<LatLng>()
-        var index  = 0
-        val len    = encoded.length
-        var lat    = 0
-        var lng    = 0
+        var index = 0
+        val len = encoded.length
+        var lat = 0
+        var lng = 0
 
         while (index < len) {
             // Decodifica latitud
-            var shift  = 0
+            var shift = 0
             var result1 = 0
             var b: Int
             do {
-                b       = encoded[index++].code - 63
+                b = encoded[index++].code - 63
                 result1 = result1 or ((b and 0x1f) shl shift)
-                shift  += 5
+                shift += 5
             } while (b >= 0x20)
             lat += if (result1 and 1 != 0) (result1 shr 1).inv() else result1 shr 1
 
             // Decodifica longitud
-            shift   = 0
+            shift = 0
             var result2 = 0
             do {
-                b       = encoded[index++].code - 63
+                b = encoded[index++].code - 63
                 result2 = result2 or ((b and 0x1f) shl shift)
-                shift  += 5
+                shift += 5
             } while (b >= 0x20)
             lng += if (result2 and 1 != 0) (result2 shr 1).inv() else result2 shr 1
 

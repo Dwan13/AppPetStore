@@ -41,13 +41,13 @@ fun ProductDetailScreen(
     onBack: () -> Unit,
     onBuyNow: (quantity: Int) -> Unit,
     modifier: Modifier = Modifier,
-    // UC-26: SensorViewModel para el parallax con giroscopio
+    //   SensorViewModel para el parallax con giroscopio
     sensorViewModel: SensorViewModel = viewModel()
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val density = LocalDensity.current.density
 
-    // UC-26: registrar sensores al entrar, detener al salir
+    //   registrar sensores al entrar, detener al salir
     DisposableEffect(Unit) {
         sensorViewModel.setup(context)
         sensorViewModel.startListening()
@@ -56,15 +56,21 @@ fun ProductDetailScreen(
 
     val sensorState by sensorViewModel.state.collectAsState()
 
-    // UC-26: parallax con spring para movimiento suave
+    //   parallax con spring para movimiento suave
     val parallaxOffsetX by animateFloatAsState(
         targetValue = (sensorState.gyroY * 28f).coerceIn(-14f, 14f),
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioNoBouncy),
+        animationSpec = spring(
+            stiffness = Spring.StiffnessMediumLow,
+            dampingRatio = Spring.DampingRatioNoBouncy
+        ),
         label = "productParallaxX"
     )
     val parallaxOffsetY by animateFloatAsState(
         targetValue = (sensorState.gyroX * 20f).coerceIn(-10f, 10f),
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioNoBouncy),
+        animationSpec = spring(
+            stiffness = Spring.StiffnessMediumLow,
+            dampingRatio = Spring.DampingRatioNoBouncy
+        ),
         label = "productParallaxY"
     )
 
@@ -99,7 +105,7 @@ fun ProductDetailScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .graphicsLayer {
-                                // UC-26: ligera ampliación para que el parallax no exponga bordes
+                                //   ligera ampliación para que el parallax no exponga bordes
                                 scaleX = 1.06f
                                 scaleY = 1.06f
                                 translationX = parallaxOffsetX * density
@@ -156,7 +162,12 @@ fun ProductDetailScreen(
                 if (product.discount > 0) {
                     Surface(
                         color = MaterialTheme.colorScheme.error,
-                        shape = RoundedCornerShape(topStart = 0.dp, bottomStart = 12.dp, topEnd = 0.dp, bottomEnd = 0.dp),
+                        shape = RoundedCornerShape(
+                            topStart = 0.dp,
+                            bottomStart = 12.dp,
+                            topEnd = 0.dp,
+                            bottomEnd = 0.dp
+                        ),
                         modifier = Modifier.align(Alignment.TopEnd)
                     ) {
                         Text(
@@ -246,14 +257,14 @@ fun ProductDetailScreen(
 
                 // Stock badge
                 val stockColor = when {
-                    product.stock == 0  -> MaterialTheme.colorScheme.error
-                    product.stock <= 5  -> MaterialTheme.colorScheme.tertiary
-                    else                -> Color(0xFF16A34A)
+                    product.stock == 0 -> MaterialTheme.colorScheme.error
+                    product.stock <= 5 -> MaterialTheme.colorScheme.tertiary
+                    else -> Color(0xFF16A34A)
                 }
                 val stockText = when {
                     product.stock == 0 -> "Sin stock"
                     product.stock <= 5 -> "¡Últimas ${product.stock} unidades!"
-                    else               -> "En stock (${product.stock} disponibles)"
+                    else -> "En stock (${product.stock} disponibles)"
                 }
                 Surface(
                     color = stockColor.copy(alpha = 0.12f),
@@ -334,7 +345,7 @@ fun ProductDetailScreen(
                             "−",
                             style = MaterialTheme.typography.titleLarge,
                             color = if (quantity > 1) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.outlineVariant
+                            else MaterialTheme.colorScheme.outlineVariant
                         )
                     }
                     Text(
@@ -351,7 +362,7 @@ fun ProductDetailScreen(
                             "+",
                             style = MaterialTheme.typography.titleLarge,
                             color = if (quantity < product.stock) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.outlineVariant
+                            else MaterialTheme.colorScheme.outlineVariant
                         )
                     }
                 }

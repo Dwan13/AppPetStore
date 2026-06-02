@@ -33,34 +33,34 @@ import com.google.firebase.auth.AuthCredential
 import com.project.apppetstore.R
 import kotlinx.coroutines.launch
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Validation helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Validation helpers
+ 
 private fun nameError(name: String): String? = when {
-    name.isBlank()          -> "El nombre es obligatorio"
-    name.trim().length < 3  -> "El nombre debe tener al menos 3 caracteres"
-    else                    -> null
+    name.isBlank() -> "El nombre es obligatorio"
+    name.trim().length < 3 -> "El nombre debe tener al menos 3 caracteres"
+    else -> null
 }
 
 private fun regEmailError(email: String): String? = when {
-    email.isBlank()                                         -> "El correo es obligatorio"
-    !Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches() -> "Ingresa un correo válido (ej: usuario@mail.com)"
-    else                                                    -> null
+    email.isBlank() -> "El correo es obligatorio"
+    !Patterns.EMAIL_ADDRESS.matcher(email.trim())
+        .matches() -> "Ingresa un correo válido (ej: usuario@mail.com)"
+
+    else -> null
 }
 
 private fun regPasswordError(password: String): String? = when {
-    password.isBlank()                    -> "La contraseña es obligatoria"
-    password.length < 8                   -> "Mínimo 8 caracteres"
-    !password.any { it.isDigit() }        -> "Incluye al menos un número"
-    !password.any { it.isUpperCase() }    -> "Incluye al menos una mayúscula"
-    else                                  -> null
+    password.isBlank() -> "La contraseña es obligatoria"
+    password.length < 8 -> "Mínimo 8 caracteres"
+    !password.any { it.isDigit() } -> "Incluye al menos un número"
+    !password.any { it.isUpperCase() } -> "Incluye al menos una mayúscula"
+    else -> null
 }
 
 private fun confirmError(password: String, confirm: String): String? = when {
-    confirm.isBlank()       -> "Confirma tu contraseña"
-    confirm != password     -> "Las contraseñas no coinciden"
-    else                    -> null
+    confirm.isBlank() -> "Confirma tu contraseña"
+    confirm != password -> "Las contraseñas no coinciden"
+    else -> null
 }
 
 /**
@@ -73,65 +73,63 @@ private fun confirmError(password: String, confirm: String): String? = when {
  */
 private fun passwordStrength(password: String): Triple<Float, String, Color> {
     if (password.isEmpty()) return Triple(0f, "", Color.Transparent)
-    val hasDigit   = password.any { it.isDigit() }
-    val hasUpper   = password.any { it.isUpperCase() }
+    val hasDigit = password.any { it.isDigit() }
+    val hasUpper = password.any { it.isUpperCase() }
     val hasSpecial = password.any { !it.isLetterOrDigit() }
     val score = when {
-        password.length < 6                        -> 1
-        password.length < 8                        -> 2
-        !hasDigit && !hasUpper                     -> 2
+        password.length < 6 -> 1
+        password.length < 8 -> 2
+        !hasDigit && !hasUpper -> 2
         password.length >= 8 && hasDigit && !hasUpper && !hasSpecial -> 3
-        password.length >= 8 && hasDigit && hasUpper && !hasSpecial  -> 3
-        password.length >= 10 && hasDigit && hasUpper && hasSpecial  -> 4
-        else                                       -> 3
+        password.length >= 8 && hasDigit && hasUpper && !hasSpecial -> 3
+        password.length >= 10 && hasDigit && hasUpper && hasSpecial -> 4
+        else -> 3
     }
     return when (score) {
-        1    -> Triple(0.20f, "Muy corta",  Color(0xFFD32F2F))
-        2    -> Triple(0.45f, "Débil",      Color(0xFFF57C00))
-        3    -> Triple(0.72f, "Aceptable",  Color(0xFFFBC02D))
-        else -> Triple(1.00f, "Fuerte",      Color(0xFF388E3C))
+        1 -> Triple(0.20f, "Muy corta", Color(0xFFD32F2F))
+        2 -> Triple(0.45f, "Débil", Color(0xFFF57C00))
+        3 -> Triple(0.72f, "Aceptable", Color(0xFFFBC02D))
+        else -> Triple(1.00f, "Fuerte", Color(0xFF388E3C))
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Screen
-// ─────────────────────────────────────────────────────────────────────────────
-
+ // Screen
+ 
 @Composable
 fun RegisterScreen(
-    uiState           : ProfileUiState,
-    onRegister        : (String, String, String) -> Unit,
+    uiState: ProfileUiState,
+    onRegister: (String, String, String) -> Unit,
     onSignInWithGoogle: (AuthCredential) -> Unit,
-    onBackToLogin     : () -> Unit,
-    onClearError      : () -> Unit,
-    modifier          : Modifier = Modifier
+    onBackToLogin: () -> Unit,
+    onClearError: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val context      = LocalContext.current
-    val scope        = rememberCoroutineScope()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
 
     // ── Valores de campo ──────────────────────────────────────────────────────
-    var fullName        by remember { mutableStateOf("") }
-    var email           by remember { mutableStateOf("") }
-    var password        by remember { mutableStateOf("") }
+    var fullName by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var confirmVisible  by remember { mutableStateOf(false) }
-    var googleError     by remember { mutableStateOf<String?>(null) }
+    var confirmVisible by remember { mutableStateOf(false) }
+    var googleError by remember { mutableStateOf<String?>(null) }
 
     // ── Errores de campo ──────────────────────────────────────────────────────
-    var nameFieldError    by remember { mutableStateOf<String?>(null) }
-    var emailFieldError   by remember { mutableStateOf<String?>(null) }
-    var passFieldError    by remember { mutableStateOf<String?>(null) }
+    var nameFieldError by remember { mutableStateOf<String?>(null) }
+    var emailFieldError by remember { mutableStateOf<String?>(null) }
+    var passFieldError by remember { mutableStateOf<String?>(null) }
     var confirmFieldError by remember { mutableStateOf<String?>(null) }
-    var hasAttempted      by remember { mutableStateOf(false) }
+    var hasAttempted by remember { mutableStateOf(false) }
 
     // Re-valida en tiempo real tras el primer intento
     fun revalidate() {
         if (!hasAttempted) return
-        nameFieldError    = nameError(fullName)
-        emailFieldError   = regEmailError(email)
-        passFieldError    = regPasswordError(password)
+        nameFieldError = nameError(fullName)
+        emailFieldError = regEmailError(email)
+        passFieldError = regPasswordError(password)
         confirmFieldError = confirmError(password, confirmPassword)
     }
 
@@ -142,9 +140,9 @@ fun RegisterScreen(
         val eErr = regEmailError(email)
         val pErr = regPasswordError(password)
         val cErr = confirmError(password, confirmPassword)
-        nameFieldError    = nErr
-        emailFieldError   = eErr
-        passFieldError    = pErr
+        nameFieldError = nErr
+        emailFieldError = eErr
+        passFieldError = pErr
         confirmFieldError = cErr
         if (nErr == null && eErr == null && pErr == null && cErr == null) {
             onRegister(fullName.trim(), email.trim(), password)
@@ -155,7 +153,7 @@ fun RegisterScreen(
     val (strengthFraction, strengthLabel, strengthColor) = passwordStrength(password)
     val animatedStrength by animateFloatAsState(
         targetValue = strengthFraction,
-        label       = "pw_strength"
+        label = "pw_strength"
     )
 
     Column(
@@ -168,13 +166,13 @@ fun RegisterScreen(
 
         // ── Encabezado ────────────────────────────────────────────────────────
         Text(
-            text       = "Crear cuenta",
-            style      = MaterialTheme.typography.headlineSmall,
+            text = "Crear cuenta",
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            color      = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary
         )
         Text(
-            text  = "Completa los campos para registrarte",
+            text = "Completa los campos para registrarte",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -183,19 +181,19 @@ fun RegisterScreen(
 
         // ── Nombre completo ───────────────────────────────────────────────────
         OutlinedTextField(
-            value         = fullName,
+            value = fullName,
             onValueChange = {
                 fullName = it
                 onClearError()
                 if (nameFieldError != null) nameFieldError = nameError(it)
             },
-            label          = { Text("Nombre completo") },
-            singleLine     = true,
-            isError        = nameFieldError != null,
+            label = { Text("Nombre completo") },
+            singleLine = true,
+            isError = nameFieldError != null,
             supportingText = nameFieldError?.let { err -> { Text(err) } },
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Words,
-                imeAction      = ImeAction.Next
+                imeAction = ImeAction.Next
             ),
             keyboardActions = KeyboardActions(
                 onNext = { focusManager.moveFocus(FocusDirection.Down) }
@@ -211,19 +209,19 @@ fun RegisterScreen(
 
         // ── Correo ────────────────────────────────────────────────────────────
         OutlinedTextField(
-            value         = email,
+            value = email,
             onValueChange = {
                 email = it
                 onClearError()
                 if (emailFieldError != null) emailFieldError = regEmailError(it)
             },
-            label          = { Text("Correo electrónico") },
-            singleLine     = true,
-            isError        = emailFieldError != null,
+            label = { Text("Correo electrónico") },
+            singleLine = true,
+            isError = emailFieldError != null,
             supportingText = emailFieldError?.let { err -> { Text(err) } },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
-                imeAction    = ImeAction.Next
+                imeAction = ImeAction.Next
             ),
             keyboardActions = KeyboardActions(
                 onNext = { focusManager.moveFocus(FocusDirection.Down) }
@@ -239,21 +237,21 @@ fun RegisterScreen(
 
         // ── Contraseña ────────────────────────────────────────────────────────
         OutlinedTextField(
-            value         = password,
+            value = password,
             onValueChange = {
                 password = it
                 onClearError()
                 if (passFieldError != null) passFieldError = regPasswordError(it)
             },
-            label                = { Text("Contraseña") },
-            singleLine           = true,
-            isError              = passFieldError != null,
-            supportingText       = passFieldError?.let { err -> { Text(err) } },
+            label = { Text("Contraseña") },
+            singleLine = true,
+            isError = passFieldError != null,
+            supportingText = passFieldError?.let { err -> { Text(err) } },
             visualTransformation = if (passwordVisible)
                 VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
-                imeAction    = ImeAction.Next
+                imeAction = ImeAction.Next
             ),
             keyboardActions = KeyboardActions(
                 onNext = { focusManager.moveFocus(FocusDirection.Down) }
@@ -261,7 +259,7 @@ fun RegisterScreen(
             trailingIcon = {
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
-                        imageVector        = if (passwordVisible)
+                        imageVector = if (passwordVisible)
                             Icons.Default.VisibilityOff else Icons.Default.Visibility,
                         contentDescription = if (passwordVisible) "Ocultar" else "Mostrar"
                     )
@@ -280,15 +278,15 @@ fun RegisterScreen(
         AnimatedVisibility(visible = password.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 LinearProgressIndicator(
-                    progress   = { animatedStrength },
-                    modifier   = Modifier
+                    progress = { animatedStrength },
+                    modifier = Modifier
                         .fillMaxWidth()
                         .height(5.dp),
-                    color      = strengthColor,
+                    color = strengthColor,
                     trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
                 Text(
-                    text  = "Contraseña: $strengthLabel",
+                    text = "Contraseña: $strengthLabel",
                     style = MaterialTheme.typography.labelSmall,
                     color = strengthColor
                 )
@@ -304,7 +302,7 @@ fun RegisterScreen(
                             tint = Color(0xFF388E3C)
                         )
                         Text(
-                            text  = "Mínimo 8 caracteres, un número y una mayúscula",
+                            text = "Mínimo 8 caracteres, un número y una mayúscula",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -315,26 +313,26 @@ fun RegisterScreen(
 
         // ── Confirmar contraseña ──────────────────────────────────────────────
         OutlinedTextField(
-            value         = confirmPassword,
+            value = confirmPassword,
             onValueChange = {
                 confirmPassword = it
                 if (confirmFieldError != null) confirmFieldError = confirmError(password, it)
             },
-            label                = { Text("Confirmar contraseña") },
-            singleLine           = true,
-            isError              = confirmFieldError != null,
-            supportingText       = confirmFieldError?.let { err -> { Text(err) } },
+            label = { Text("Confirmar contraseña") },
+            singleLine = true,
+            isError = confirmFieldError != null,
+            supportingText = confirmFieldError?.let { err -> { Text(err) } },
             visualTransformation = if (confirmVisible)
                 VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
-                imeAction    = ImeAction.Done
+                imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(onDone = { attemptRegister() }),
             trailingIcon = {
                 IconButton(onClick = { confirmVisible = !confirmVisible }) {
                     Icon(
-                        imageVector        = if (confirmVisible)
+                        imageVector = if (confirmVisible)
                             Icons.Default.VisibilityOff else Icons.Default.Visibility,
                         contentDescription = if (confirmVisible) "Ocultar" else "Mostrar"
                     )
@@ -352,22 +350,26 @@ fun RegisterScreen(
         // ── Política de requisitos (resumen visual) ───────────────────────────
         AnimatedVisibility(visible = !hasAttempted && password.isEmpty()) {
             Surface(
-                shape  = MaterialTheme.shapes.small,
-                color  = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     Text(
                         "Requisitos de contraseña:",
-                        style      = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color      = MaterialTheme.colorScheme.onSecondaryContainer
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    listOf("Mínimo 8 caracteres", "Al menos un número (0-9)", "Al menos una mayúscula (A-Z)")
+                    listOf(
+                        "Mínimo 8 caracteres",
+                        "Al menos un número (0-9)",
+                        "Al menos una mayúscula (A-Z)"
+                    )
                         .forEach { req ->
                             Text(
-                                text  = "• $req",
+                                text = "• $req",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
@@ -379,14 +381,14 @@ fun RegisterScreen(
         // ── Error de Firebase ─────────────────────────────────────────────────
         AnimatedVisibility(visible = uiState.error != null) {
             Surface(
-                shape    = MaterialTheme.shapes.small,
-                color    = MaterialTheme.colorScheme.errorContainer,
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.errorContainer,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text     = uiState.error ?: "",
-                    color    = MaterialTheme.colorScheme.onErrorContainer,
-                    style    = MaterialTheme.typography.bodySmall,
+                    text = uiState.error ?: "",
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                 )
             }
@@ -396,17 +398,17 @@ fun RegisterScreen(
 
         // ── Botón de registro ─────────────────────────────────────────────────
         Button(
-            onClick  = { attemptRegister() },
+            onClick = { attemptRegister() },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
             enabled = !uiState.isLoading,
-            shape   = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.medium
         ) {
             if (uiState.isLoading) {
                 CircularProgressIndicator(
-                    modifier    = Modifier.size(18.dp),
-                    color       = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(18.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
                     strokeWidth = 2.dp
                 )
             } else {
@@ -416,12 +418,12 @@ fun RegisterScreen(
 
         // ── Divisor ───────────────────────────────────────────────────────────
         Row(
-            modifier          = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             HorizontalDivider(modifier = Modifier.weight(1f))
             Text(
-                text  = "  o regístrate con  ",
+                text = "  o regístrate con  ",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -431,14 +433,14 @@ fun RegisterScreen(
         // ── Error de Google Sign-In ───────────────────────────────────────────
         AnimatedVisibility(visible = googleError != null) {
             Surface(
-                shape    = MaterialTheme.shapes.small,
-                color    = MaterialTheme.colorScheme.errorContainer,
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.errorContainer,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text     = googleError ?: "",
-                    color    = MaterialTheme.colorScheme.onErrorContainer,
-                    style    = MaterialTheme.typography.bodySmall,
+                    text = googleError ?: "",
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                 )
             }
@@ -450,9 +452,9 @@ fun RegisterScreen(
                 googleError = null
                 scope.launch {
                     launchGoogleSignIn(
-                        context   = context,
+                        context = context,
                         onSuccess = { credential -> onSignInWithGoogle(credential) },
-                        onError   = { msg -> googleError = msg }
+                        onError = { msg -> googleError = msg }
                     )
                 }
             },
@@ -460,13 +462,13 @@ fun RegisterScreen(
                 .fillMaxWidth()
                 .height(52.dp),
             enabled = !uiState.isLoading,
-            shape   = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.medium
         ) {
             Icon(
-                painter            = painterResource(id = R.drawable.ic_google),
+                painter = painterResource(id = R.drawable.ic_google),
                 contentDescription = "Google",
-                modifier           = Modifier.size(20.dp),
-                tint               = Color.Unspecified
+                modifier = Modifier.size(20.dp),
+                tint = Color.Unspecified
             )
             Spacer(modifier = Modifier.width(10.dp))
             Text("Continuar con Google", style = MaterialTheme.typography.labelLarge)
@@ -476,17 +478,17 @@ fun RegisterScreen(
 
         // ── Volver al login ───────────────────────────────────────────────────
         Row(
-            modifier              = Modifier.fillMaxWidth(),
-            verticalAlignment     = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text  = "¿Ya tienes cuenta?",
+                text = "¿Ya tienes cuenta?",
                 style = MaterialTheme.typography.bodyMedium
             )
             Spacer(modifier = Modifier.width(4.dp))
             TextButton(
-                onClick        = onBackToLogin,
+                onClick = onBackToLogin,
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Text("Inicia sesión", fontWeight = FontWeight.SemiBold)
