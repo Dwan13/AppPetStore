@@ -3,15 +3,29 @@
   <component name="AppInsightsSettings">
     <option name="tabSettings">
       <map>
+        <entry key="Android vitals">
+          <value>
+            <InsightsFilterSettings>
+              <option name="failureTypes">
+                <list>
+                  <option value="ANR" />
+                </list>
+              </option>
+              <option name="signal" value="SIGNAL_UNSPECIFIED" />
+              <option name="timeIntervalDays" value="SEVEN_DAYS" />
+              <option name="visibilityType" value="ALL" />
+            </InsightsFilterSettings>
+          </value>
+        </entry>
         <entry key="Firebase Crashlytics">
           <value>
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="com.project.apppetstore" />
-                  <option name="mobileSdkAppId" value="1:873866275765:android:a4dc079c586e41cd6607fc" />
-                  <option name="projectId" value="react-test-879a2" />
-                  <option name="projectNumber" value="873866275765" />
+                  <option name="mobileSdkAppId" value="1:1003439074308:android:eeab1d491241ed48499951" />
+                  <option name="projectId" value="apppetstore-b12fc" />
+                  <option name="projectNumber" value="1003439074308" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

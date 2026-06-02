@@ -3,17 +3,20 @@ package com.project.apppetstore
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.project.apppetstore.utils.AppNotificationHelper
 
 class AppPetStoreApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        createNotificationChannels()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createNotificationChannels()
+        }
     }
 
-    // ── Crear canales (requerido desde Android 8.0 / API 26) ─────────────────
-
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannels() {
         val manager = getSystemService(NotificationManager::class.java)
 
