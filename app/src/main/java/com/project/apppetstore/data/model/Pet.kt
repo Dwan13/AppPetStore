@@ -14,5 +14,7 @@ data class Pet(
     val personality: String,
     val requirements: String,
     val imageUrl: String? = null,
-    @DrawableRes val imageRes: Int? = null
+    @DrawableRes val imageRes: Int? = null,
+    /** UID del dueño si la publicó un usuario; null = mascota de catálogo (admin). */
+    val ownerUid: String? = null
 )

@@ -1,6 +1,7 @@
 package com.project.apppetstore.ui.feature.notifications
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +18,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.LocalOffer
 import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Pets
+import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -41,11 +47,12 @@ import java.util.Locale
 
 @Composable
 fun NotificationsScreen(
-    uiState           : NotificationsUiState,
-    onBack            : () -> Unit,
-    onMarkAllSeen     : () -> Unit,
-    lastSeenTimestamp : Long,
-    modifier          : Modifier = Modifier
+    uiState              : NotificationsUiState,
+    onBack               : () -> Unit,
+    onMarkAllSeen        : () -> Unit,
+    lastSeenTimestamp    : Long,
+    onNotificationClick  : (AppNotification) -> Unit = {},
+    modifier             : Modifier = Modifier
 ) {
     // Marcar como leídas en cuanto se abre la pantalla
     LaunchedEffect(Unit) { onMarkAllSeen() }
@@ -119,8 +126,9 @@ fun NotificationsScreen(
                 ) {
                     items(uiState.notifications, key = { it.id }) { notif ->
                         NotificationItem(
-                            notification = notif,
-                            isUnread     = notif.timestamp > lastSeenTimestamp
+                            notification    = notif,
+                            isUnread        = notif.timestamp > lastSeenTimestamp,
+                            onNotificationClick = { onNotificationClick(notif) }
                         )
                     }
                 }
@@ -135,9 +143,11 @@ fun NotificationsScreen(
 
 @Composable
 private fun NotificationItem(
-    notification : AppNotification,
-    isUnread     : Boolean
+    notification        : AppNotification,
+    isUnread            : Boolean,
+    onNotificationClick : () -> Unit = {}
 ) {
+    val isNavigable = notification.type == "pet" && notification.chatId != null
     val dateStr = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
         .format(Date(notification.timestamp))
 
@@ -147,7 +157,9 @@ private fun NotificationItem(
         MaterialTheme.colorScheme.surface
 
     ElevatedCard(
-        modifier  = Modifier.fillMaxWidth(),
+        modifier  = Modifier
+            .fillMaxWidth()
+            .then(if (isNavigable) Modifier.clickable { onNotificationClick() } else Modifier),
         shape     = MaterialTheme.shapes.large,
         elevation = CardDefaults.elevatedCardElevation(
             defaultElevation = if (isUnread) 3.dp else 1.dp
@@ -164,18 +176,30 @@ private fun NotificationItem(
             // Ícono del tipo de notificación
             Surface(
                 shape    = CircleShape,
-                color    = MaterialTheme.colorScheme.primaryContainer,
+                color    = when (notification.type) {
+                    "order"       -> MaterialTheme.colorScheme.secondaryContainer
+                    "appointment" -> MaterialTheme.colorScheme.primaryContainer
+                    "pet"         -> MaterialTheme.colorScheme.tertiaryContainer
+                    else          -> MaterialTheme.colorScheme.surfaceVariant
+                },
                 modifier = Modifier.size(44.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text  = when (notification.type) {
-                            "order"       -> "🛒"
-                            "appointment" -> "📅"
-                            "pet"         -> "🐾"
-                            else          -> "🎉"
+                    Icon(
+                        imageVector = when (notification.type) {
+                            "order"       -> Icons.Rounded.ShoppingCart
+                            "appointment" -> Icons.Rounded.CalendarMonth
+                            "pet"         -> Icons.Rounded.Pets
+                            else          -> Icons.Rounded.LocalOffer
                         },
-                        style = MaterialTheme.typography.titleMedium
+                        contentDescription = null,
+                        tint = when (notification.type) {
+                            "order"       -> MaterialTheme.colorScheme.onSecondaryContainer
+                            "appointment" -> MaterialTheme.colorScheme.onPrimaryContainer
+                            "pet"         -> MaterialTheme.colorScheme.onTertiaryContainer
+                            else          -> MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        modifier = Modifier.size(22.dp)
                     )
                 }
             }
@@ -212,11 +236,36 @@ private fun NotificationItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(6.dp))
-                Text(
-                    text  = dateStr,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text  = dateStr,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    // Indicador de navegación para notificaciones de adopción
+                    if (isNavigable) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            Text(
+                                text  = "Ver chat",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
             }
         }
     }

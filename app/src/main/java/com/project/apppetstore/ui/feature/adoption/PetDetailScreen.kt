@@ -12,7 +12,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.rounded.Chat
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.animation.core.Spring
@@ -56,6 +58,7 @@ fun PetDetailScreen(
     isLoadingMessages: Boolean = false,
     onInputChange: (String) -> Unit,
     onSendMessage: () -> Unit,
+    onDeleteMessage: (String) -> Unit,
     onRemovePendingAttachment: () -> Unit,
     onTakePhoto: () -> Unit,
     onPickImage: () -> Unit,
@@ -91,7 +94,7 @@ fun PetDetailScreen(
         Column(
             modifier = Modifier
                 .verticalScroll(scrollState)
-                .padding(bottom = 80.dp)
+                .padding(bottom = 16.dp)
         ) {
             Box(modifier = Modifier.height(280.dp).fillMaxWidth()) {
                 when {
@@ -212,8 +215,36 @@ fun PetDetailScreen(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            // Chat informativo
-            Spacer(modifier = Modifier.height(16.dp))
+
+            // Banner contextual según tipo de mascota
+            if (pet.ownerUid != null) {
+                // Mascota de usuario: el chat ES el proceso de adopción
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
+                        .background(
+                            color = Color(0xFFEAFBC1),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Rounded.Chat,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = Color(0xFF5C9639)
+                    )
+                    Text(
+                        text = "Escribe un mensaje al dueño para iniciar la adopción",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF2D5A1A)
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
             ChatSection(
                 messages = messages,
@@ -223,6 +254,7 @@ fun PetDetailScreen(
                 isLoadingMessages = isLoadingMessages,
                 onInputChange = onInputChange,
                 onSendMessage = onSendMessage,
+                onDeleteMessage = onDeleteMessage,
                 onRemovePendingAttachment = onRemovePendingAttachment,
                 onTakePhoto = onTakePhoto,
                 onPickImage = onPickImage,
@@ -232,21 +264,6 @@ fun PetDetailScreen(
                 onPickAudio = onPickAudio
             )
             Spacer(modifier = Modifier.height(24.dp))
-        }
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .background(Color.White, RoundedCornerShape(0.dp))
-                .padding(bottom = 16.dp, top = 8.dp)
-        ) {
-            PrimaryButton(
-                text = "Iniciar proceso de adopción",
-                onClick = onAdoptClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-            )
         }
     }
 }

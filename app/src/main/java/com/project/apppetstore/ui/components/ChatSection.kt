@@ -40,6 +40,7 @@ fun ChatSection(
     pendingAttachment: ChatAttachment?,
     onInputChange: (String) -> Unit,
     onSendMessage: () -> Unit,
+    onDeleteMessage: (String) -> Unit,
     onRemovePendingAttachment: () -> Unit,
     onTakePhoto: () -> Unit,
     onPickImage: () -> Unit,
@@ -80,7 +81,12 @@ fun ChatSection(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(messages, key = { it.id }) { message ->
-                        ChatBubble(message)
+                        ChatBubble(
+                            message = message,
+                            onDeleteMessage = if (message.isUser) {
+                                { onDeleteMessage(message.id) }
+                            } else null
+                        )
                     }
                 }
             }

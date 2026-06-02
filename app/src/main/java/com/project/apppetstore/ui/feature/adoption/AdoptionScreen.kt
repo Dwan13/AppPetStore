@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,7 +32,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.rounded.Cake
+import androidx.compose.material.icons.rounded.Height
+import androidx.compose.material.icons.rounded.Pets
+import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.Wc
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -71,6 +79,7 @@ import com.project.apppetstore.data.model.AttachmentType
 import com.project.apppetstore.data.model.Pet
 import com.project.apppetstore.ui.components.ChatSection
 import com.project.apppetstore.ui.components.PetCard
+import com.project.apppetstore.ui.feature.favorites.FavoritesViewModel
 import com.project.apppetstore.ui.viewmodels.SensorViewModel
 import com.project.apppetstore.utils.createVideoOnMoviesFolder
 
@@ -80,6 +89,7 @@ fun AdoptionScreen(
     uiState: AdoptionUiState,
     onInputChange: (String) -> Unit,
     onSendMessage: () -> Unit,
+    onDeleteMessage: (String) -> Unit,
     onAttachMedia: (AttachmentType, String) -> Unit,
     onRemovePendingAttachment: () -> Unit,
     modifier: Modifier = Modifier,
@@ -89,7 +99,11 @@ fun AdoptionScreen(
     onNavigateToPet: (String) -> Unit = {},
     onBack: () -> Unit = {},
     // UC-25/26: sensor ViewModel compartido con PetDetailScreen
-    sensorViewModel: SensorViewModel = viewModel()
+    sensorViewModel: SensorViewModel = viewModel(),
+    // Favoritos — ViewModel con persistencia real en Firestore
+    favoritesViewModel: FavoritesViewModel = viewModel(),
+    // true cuando el dueño abre el chat directo desde una notificación
+    isOwnerViewingChat: Boolean = false
 ) {
     val context = LocalContext.current
     val packageManager = context.packageManager
@@ -114,7 +128,9 @@ fun AdoptionScreen(
     }
 
     val petsToShow = if (selectedPetId != null) uiState.pets.filter { it.id == selectedPetId } else uiState.pets
-    var isFavorite by remember(selectedPetId) { mutableStateOf(false) }
+    // isFavorite deriva del estado real de Firestore (FavoritesViewModel)
+    val favoritesState = favoritesViewModel.uiState
+    val isFavorite = selectedPetId != null && selectedPetId in favoritesState.favoritePetIds
     val selectedPet = uiState.pets.find { it.id == selectedPetId }
     var showCameraDialog by remember { mutableStateOf(false) }
     var pendingVideoUri by remember { mutableStateOf<Uri?>(null) }
@@ -279,6 +295,26 @@ fun AdoptionScreen(
         }
     }
 
+    // ── Vista del dueño: chat directo desde notificación ────────────────────
+    if (isOwnerViewingChat) {
+        OwnerChatView(
+            uiState                   = uiState,
+            onBack                    = onBack,
+            onInputChange             = onInputChange,
+            onSendMessage             = onSendMessage,
+            onDeleteMessage           = onDeleteMessage,
+            onRemovePendingAttachment = onRemovePendingAttachment,
+            onTakePhoto               = onTakePhoto,
+            onPickImage               = onPickImage,
+            onRecordVideo             = onRecordVideo,
+            onPickVideo               = onPickVideo,
+            onRecordAudio             = onRecordAudio,
+            onPickAudio               = onPickAudio,
+            modifier                  = modifier
+        )
+        return
+    }
+
     Column(
         modifier = modifier
             .then(
@@ -295,7 +331,7 @@ fun AdoptionScreen(
             PetDetailScreen(
                 pet = selectedPet,
                 isFavorite = isFavorite,
-                onToggleFavorite = { isFavorite = !isFavorite },
+                onToggleFavorite = { selectedPetId?.let { favoritesViewModel.toggleFavorite(it) } },
                 onAdoptClick = { },
                 onBack = onBack,
 
@@ -306,6 +342,7 @@ fun AdoptionScreen(
                 isLoadingMessages = uiState.isLoadingMessages,
                 onInputChange = onInputChange,
                 onSendMessage = onSendMessage,
+                onDeleteMessage = onDeleteMessage,
                 onRemovePendingAttachment = onRemovePendingAttachment,
                 onTakePhoto = onTakePhoto,
                 onPickImage = onPickImage,
@@ -352,7 +389,9 @@ fun AdoptionScreen(
                             highlightedPetIndex = index
                             onPetSelected(pet.id)
                         },
-                    image = pet.imageRes?.let { painterResource(it) }
+                    image           = pet.imageRes?.let { painterResource(it) },
+                    isFavorite      = pet.id in favoritesState.favoritePetIds,
+                    onFavoriteClick = { favoritesViewModel.toggleFavorite(pet.id) }
                 )
             }
 
@@ -364,6 +403,7 @@ fun AdoptionScreen(
                 isLoadingMessages = uiState.isLoadingMessages,
                 onInputChange = onInputChange,
                 onSendMessage = onSendMessage,
+                onDeleteMessage = onDeleteMessage,
                 onRemovePendingAttachment = onRemovePendingAttachment,
                 onTakePhoto = onTakePhoto,
                 onPickImage = onPickImage,
@@ -382,7 +422,7 @@ fun AdoptionScreen(
         )
     }
 
-    // ── UC-25: BottomSheet "Agitar para descubrir" ────────────────────────────
+    // "Agitar para descubrir"
     shakeDiscoverPet?.let { pet ->
         ShakeDiscoverBottomSheet(
             pet       = pet,
@@ -396,7 +436,82 @@ fun AdoptionScreen(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// UC-25: BottomSheet "Mascota sorpresa"
+// Vista del dueño: responde a solicitudes de adopción desde notificación
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun OwnerChatView(
+    uiState                   : AdoptionUiState,
+    onBack                    : () -> Unit,
+    onInputChange             : (String) -> Unit,
+    onSendMessage             : () -> Unit,
+    onDeleteMessage           : (String) -> Unit,
+    onRemovePendingAttachment : () -> Unit,
+    onTakePhoto               : () -> Unit,
+    onPickImage               : () -> Unit,
+    onRecordVideo             : () -> Unit,
+    onPickVideo               : () -> Unit,
+    onRecordAudio             : () -> Unit,
+    onPickAudio               : () -> Unit,
+    modifier                  : Modifier = Modifier
+) {
+    val cs = androidx.compose.material3.MaterialTheme.colorScheme
+    val tt = androidx.compose.material3.MaterialTheme.typography
+
+    Column(modifier = modifier.fillMaxSize()) {
+        // ── TopBar ──────────────────────────────────────────────────────────
+        Row(
+            modifier          = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            androidx.compose.material3.IconButton(onClick = onBack) {
+                Icon(
+                    imageVector        = androidx.compose.material.icons.Icons.AutoMirrored.Rounded.ArrowBack,
+                    contentDescription = "Volver"
+                )
+            }
+            Column {
+                androidx.compose.material3.Text(
+                    text  = "Solicitud de adopción",
+                    style = tt.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                androidx.compose.material3.Text(
+                    text  = "Un usuario está interesado en tu mascota",
+                    style = tt.bodySmall,
+                    color = cs.onSurfaceVariant
+                )
+            }
+        }
+        androidx.compose.material3.HorizontalDivider()
+
+        // ── Chat ─────────────────────────────────────────────────────────────
+        Box(modifier = Modifier.weight(1f)) {
+            ChatSection(
+                messages                  = uiState.messages,
+                currentInput              = uiState.currentInput,
+                pendingAttachment         = uiState.pendingAttachment,
+                isUploading               = uiState.isUploading,
+                isLoadingMessages         = uiState.isLoadingMessages,
+                onInputChange             = onInputChange,
+                onSendMessage             = onSendMessage,
+                onDeleteMessage           = onDeleteMessage,
+                onRemovePendingAttachment = onRemovePendingAttachment,
+                onTakePhoto               = onTakePhoto,
+                onPickImage               = onPickImage,
+                onRecordVideo             = onRecordVideo,
+                onPickVideo               = onPickVideo,
+                onRecordAudio             = onRecordAudio,
+                onPickAudio               = onPickAudio
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// "Mascota sorpresa"
 // ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -422,12 +537,23 @@ private fun ShakeDiscoverBottomSheet(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Título
-            Text(
-                text = "🎲 ¡Mascota sorpresa!",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Shuffle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(26.dp)
+                )
+                Text(
+                    text = "¡Mascota sorpresa!",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+            }
             Text(
                 text = "Sacudiste el teléfono — aquí está tu match:",
                 style = MaterialTheme.typography.bodySmall,
@@ -479,20 +605,34 @@ private fun ShakeDiscoverBottomSheet(
             )
 
             // Detalles rápidos
-            val details = buildList {
-                if (pet.age.isNotBlank())    add("🎂 ${pet.age}")
-                if (pet.breed.isNotBlank())  add("🐾 ${pet.breed}")
-                if (pet.gender.isNotBlank()) add("⚥ ${pet.gender}")
-                if (pet.size.isNotBlank())   add("📏 ${pet.size}")
-            }.joinToString("  ·  ")
-
-            if (details.isNotBlank()) {
-                Text(
-                    text = details,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (pet.age.isNotBlank()) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Icon(Icons.Rounded.Cake, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(pet.age, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                if (pet.breed.isNotBlank()) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Icon(Icons.Rounded.Pets, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(pet.breed, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                if (pet.gender.isNotBlank()) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Icon(Icons.Rounded.Wc, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(pet.gender, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                if (pet.size.isNotBlank()) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Icon(Icons.Rounded.Height, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(pet.size, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
             }
 
             if (pet.personality.isNotBlank()) {
