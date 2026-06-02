@@ -21,7 +21,13 @@ import androidx.compose.ui.unit.dp
 import com.project.apppetstore.ui.theme.AppPetStoreTheme
 
 @Composable
-fun RequestPermissionCard(modifier: Modifier = Modifier, onRequestPermission: () -> Unit = {}) {
+fun RequestPermissionCard(
+    modifier: Modifier = Modifier,
+    title: String = "Permiso de ubicacion requerido",
+    message: String = "Necesitamos tu ubicacion para mostrar servicios cercanos y ordenar por distancia.",
+    actionLabel: String = "Solicitar permisos",
+    onRequestPermission: () -> Unit = {}
+) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.onTertiary,
@@ -39,9 +45,14 @@ fun RequestPermissionCard(modifier: Modifier = Modifier, onRequestPermission: ()
                 contentDescription = null
             )
             Text(
-                text = "El uso de Localizacion es necesario, por faavor acepte los permisos",
+                text = title,
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.tertiary
+            )
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             OutlinedButton(
                 onClick = onRequestPermission,
@@ -49,7 +60,7 @@ fun RequestPermissionCard(modifier: Modifier = Modifier, onRequestPermission: ()
                     contentColor = MaterialTheme.colorScheme.tertiary,
                 ),
             ) {
-                Text(text = "Solicitar permisos")
+                Text(text = actionLabel)
             }
         }
     }

@@ -19,7 +19,10 @@ import androidx.compose.ui.unit.dp
 import com.project.apppetstore.ui.theme.AppPetStoreTheme
 
 @Composable
-fun NoPermissionCard(modifier: Modifier = Modifier) {
+fun NoPermissionCard(
+    modifier: Modifier = Modifier,
+    message: String = "Permiso denegado. Puedes habilitarlo desde Ajustes para usar esta funcion."
+) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -37,7 +40,7 @@ fun NoPermissionCard(modifier: Modifier = Modifier) {
                 contentDescription = null
             )
             Text(
-                text = "No pude obtener los permisos, el App no funcionará",
+                text = message,
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.error
             )
