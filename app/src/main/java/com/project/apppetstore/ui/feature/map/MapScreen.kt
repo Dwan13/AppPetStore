@@ -2,7 +2,10 @@ package com.project.apppetstore.ui.feature.map
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.location.Location
+import android.net.Uri
+import android.provider.Settings
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import androidx.compose.animation.core.Animatable
@@ -89,7 +92,6 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import com.project.apppetstore.R
 import com.project.apppetstore.data.model.Service
-import com.project.apppetstore.ui.components.NoPermissionCard
 import com.project.apppetstore.ui.components.RequestPermissionCard
 import com.project.apppetstore.ui.feature.services.ServicesViewModel
 import com.project.apppetstore.ui.viewmodels.LocationViewModel
@@ -404,6 +406,16 @@ private fun MapContent(
         is PermissionStatus.Denied -> status.shouldShowRationale
         PermissionStatus.Granted -> false
     }
+    val isExplorationWithoutPermission = !deliveryRequested && !permissionState.status.isGranted
+    val requestLocationAccess: () -> Unit = {
+        when (val status = permissionState.status) {
+            PermissionStatus.Granted -> Unit
+            is PermissionStatus.Denied -> {
+                if (status.shouldShowRationale) permissionState.launchPermissionRequest()
+                else openAppPermissionSettings(context)
+            }
+        }
+    }
 
     var selectedCategory by rememberSaveable { mutableStateOf<PoiCategory?>(null) }
 
@@ -451,7 +463,13 @@ private fun MapContent(
 
     // Filtra por categoría y ordena por distancia.
     // Usa los servicios reales si hay alguno con coordenadas; si no, el fallback.
-    val filteredPois: List<PoiItem> = remember(selectedCategory, userSearchLocation, servicePois) {
+    val filteredPois: List<PoiItem> = remember(
+        selectedCategory,
+        userSearchLocation,
+        servicePois,
+        isExplorationWithoutPermission
+    ) {
+        if (isExplorationWithoutPermission) return@remember emptyList()
         val allPois = if (servicePois.isNotEmpty()) servicePois else fallbackPois
         val base = if (selectedCategory == null) allPois
         else allPois.filter { it.category == selectedCategory }
@@ -607,6 +625,7 @@ private fun MapContent(
         } else {
             locationViewModel.stopLocationUpdates()
             locationViewModel.clearRoute()
+            if (!deliveryRequested) selectedService = null
         }
     }
 
@@ -633,7 +652,7 @@ private fun MapContent(
             )
         }
 
-        if (!deliveryRequested) {
+        if (!deliveryRequested && !isExplorationWithoutPermission) {
             CategoryFilters(
                 selectedCategory = selectedCategory,
                 onCategorySelected = {
@@ -643,14 +662,35 @@ private fun MapContent(
             )
         }
 
-        if (!permissionState.status.isGranted) {
+        if (isExplorationWithoutPermission) {
             RequestPermissionCard(
                 modifier = Modifier.fillMaxWidth(),
-                onRequestPermission = { permissionState.launchPermissionRequest() }
+                title = "Activa tu ubicacion para usar el mapa",
+                message = if (showRationale) {
+                    "Necesitamos el permiso para mostrar clinicas y ordenar resultados cerca de ti."
+                } else {
+                    "El permiso fue bloqueado. Abre Ajustes para habilitar la ubicacion y ver servicios cercanos."
+                },
+                actionLabel = if (showRationale) "Solicitar permisos" else "Abrir ajustes",
+                onRequestPermission = requestLocationAccess
             )
         }
-        if (!permissionState.status.isGranted && !showRationale) {
-            NoPermissionCard(modifier = Modifier.fillMaxWidth())
+
+        if (isExplorationWithoutPermission) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Text(
+                    text = "Sin permiso no mostramos ubicaciones en el mapa para proteger tu contexto de busqueda.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
+                )
+            }
         }
 
         // ── Google Map ───────────────────────────────────────────────────────
@@ -805,7 +845,7 @@ private fun MapContent(
         } else {
             // Modo exploración: muestra la tarjeta de acción cuando hay un servicio seleccionado.
             val svc = selectedService
-            if (svc != null) {
+            if (svc != null && !isExplorationWithoutPermission) {
                 ServiceActionCard(
                     service = svc,
                     onDismiss = { selectedService = null },
@@ -1088,6 +1128,14 @@ private fun rememberMapStyle(context: android.content.Context, rawResId: Int): M
     return remember(context, rawResId) {
         runCatching { MapStyleOptions.loadRawResourceStyle(context, rawResId) }.getOrNull()
     }
+}
+
+private fun openAppPermissionSettings(context: android.content.Context) {
+    val intent = Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", context.packageName, null)
+    )
+    context.startActivity(intent)
 }
 
 @Composable
