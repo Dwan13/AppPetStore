@@ -1,9 +1,9 @@
 package com.project.apppetstore.ui.feature.favorites
 
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
@@ -26,45 +26,67 @@ class FavoritesViewModel(app: Application) : AndroidViewModel(app) {
     private val auth      = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
 
-    /** Catálogo completo — se llena desde Firestore (o caché en memoria). */
+    /** Catálogo completo de mascotas — se carga una vez por sesión. */
     private var allPets: List<Pet> = emptyList()
 
+    /** Listener activo de Firestore para los favoritos del usuario actual. */
     private var listenerReg: ListenerRegistration? = null
 
     var uiState by mutableStateOf(FavoritesUiState())
         private set
 
-    init {
-        viewModelScope.launch {
-            val ctx = getApplication<Application>()
-            allPets = try {
-                FirestorePetsRepository.getPets(ctx)
-            } catch (_: Exception) {
-                MockPetShopRepository.getPets()
+    /**
+     * Reacciona a cada cambio de autenticación (login, logout, cambio de cuenta)
+     * mientras el ViewModel esté vivo.
+     *
+     * Firebase invoca esto inmediatamente al añadir el listener con el estado
+     * actual — por eso reemplaza al antiguo init{}.
+     */
+    private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+        val uid = firebaseAuth.currentUser?.uid
+
+        // Cancelar el listener anterior (sesión anterior o primer arranque sin sesión)
+        listenerReg?.remove()
+        listenerReg = null
+
+        if (uid != null) {
+            // Usuario acaba de iniciar sesión (o la app arrancó con sesión activa)
+            uiState = uiState.copy(isLoading = true)
+            viewModelScope.launch {
+                val ctx = getApplication<Application>()
+                allPets = try {
+                    FirestorePetsRepository.getPets(ctx)
+                } catch (_: Exception) {
+                    MockPetShopRepository.getPets()
+                }
+                // Iniciar nuevo listener para este uid
+                listenFavorites(uid)
             }
-            // Iniciar listener de favoritos una vez que tenemos el catálogo
-            listenFavorites()
+        } else {
+            // Usuario cerró sesión — limpiar estado
+            allPets = emptyList()
+            uiState = FavoritesUiState(isLoading = false)
         }
+    }
+
+    init {
+        // addAuthStateListener dispara authStateListener de inmediato con el
+        // estado actual de auth → no hace falta código adicional en init.
+        auth.addAuthStateListener(authStateListener)
     }
 
     override fun onCleared() {
         super.onCleared()
+        auth.removeAuthStateListener(authStateListener)
         listenerReg?.remove()
     }
 
-    /**
-     * Escucha en tiempo real el campo `favoritePetIds` del documento del usuario
-     * en Firestore. Cualquier cambio (desde otro dispositivo, o hecho aquí) se
-     * refleja automáticamente en la UI.
-     */
-    private fun listenFavorites() {
-        val uid = auth.currentUser?.uid
-        if (uid == null) {
-            uiState = FavoritesUiState(isLoading = false)
-            return
-        }
+    // ── Firestore real-time listener ───────────────────────────────────────────
+
+    private fun listenFavorites(uid: String) {
         listenerReg = firestore.collection("users").document(uid)
-            .addSnapshotListener { doc, _ ->
+            .addSnapshotListener { doc, error ->
+                if (error != null) return@addSnapshotListener
                 @Suppress("UNCHECKED_CAST")
                 val ids = (doc?.get("favoritePetIds") as? List<String>)?.toSet() ?: emptySet()
                 uiState = FavoritesUiState(
@@ -75,24 +97,24 @@ class FavoritesViewModel(app: Application) : AndroidViewModel(app) {
             }
     }
 
+    // ── Acciones ───────────────────────────────────────────────────────────────
+
     /**
-     * Agrega o quita una mascota de favoritos.
-     * Actualización optimista: la UI responde al instante;
-     * luego se persiste en Firestore.
+     * Agrega o quita [petId] de favoritos.
+     * Actualización optimista → UI responde al instante,
+     * luego se persiste en Firestore con merge (sin pisar otros campos).
      */
     fun toggleFavorite(petId: String) {
         val uid = auth.currentUser?.uid ?: return
         val updated = uiState.favoritePetIds.toMutableSet().apply {
             if (contains(petId)) remove(petId) else add(petId)
         }
-
-        // Actualización optimista
+        // Optimistic update
         uiState = uiState.copy(
             favoritePetIds = updated,
             favoritePets   = allPets.filter { it.id in updated }
         )
-
-        // Persistir en Firestore (merge para no pisar otros campos del usuario)
+        // Persist
         firestore.collection("users").document(uid)
             .set(mapOf("favoritePetIds" to updated.toList()), SetOptions.merge())
     }

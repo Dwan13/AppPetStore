@@ -11,24 +11,23 @@ import com.project.apppetstore.data.util.uploadImageToStorage
 import kotlinx.coroutines.tasks.await
 
 /**
- * Carga mascotas desde Firestore (colección "pets").
+ * Carga mascotas desde Firestore.
  *
- * Primera ejecución (colección vacía):
- *  - Sube cada imagen a Firebase Storage en "catalog/pets/{id}.jpg"
- *  - Guarda el documento con imageUrl apuntando al Storage URL
+ * Fuentes combinadas:
+ *  1. Colección "pets"             → catálogo administrado (admin panel / Firebase Console)
+ *  2. Colección "adoptionListings" → mascotas publicadas por usuarios desde la app
  *
- * Ejecuciones posteriores:
- *  - Lee los documentos de Firestore, que ya contienen imageUrl
+ * Primera ejecución (colección "pets" vacía):
+ *  - Sube imágenes a Firebase Storage y siembra desde el mock local.
  *
- * Fallback sin red: datos del mock local.
- *
- * Cache en memoria: una sola llamada a Firestore por sesión (compartida
- * entre HomeViewModel, AdoptionViewModel y FavoritesViewModel).
+ * Cache en memoria compartida entre HomeViewModel, AdoptionViewModel y FavoritesViewModel.
  */
 object FirestorePetsRepository {
 
     private val db         get() = Firebase.firestore
-    private const val COL = "pets"
+    private const val COL  = "pets"
+    /** Colección que los usuarios pueden escribir sin restricciones de admin. */
+    const val ADOPTION_COL = "adoptionListings"
 
     @Volatile private var cache: List<Pet>? = null
 
@@ -43,14 +42,27 @@ object FirestorePetsRepository {
 
     // ── Carga principal ───────────────────────────────────────────────────────
 
-    private suspend fun loadFromFirestore(context: Context?): List<Pet> = try {
-        val snap = db.collection(COL).get().await()
-        when {
-            snap.isEmpty -> seedAndReturn(context)
-            else         -> snap.documents.mapNotNull { it.toPet() }.ifEmpty { seedAndReturn(context) }
+    private suspend fun loadFromFirestore(context: Context?): List<Pet> {
+        return try {
+            // 1. Catálogo admin
+            val petsSnap = db.collection(COL).get().await()
+            val adminPets = if (petsSnap.isEmpty) {
+                seedAndReturn(context)
+            } else {
+                petsSnap.documents.mapNotNull { it.toPet() }.ifEmpty { seedAndReturn(context) }
+            }
+
+            // 2. Mascotas de usuarios publicadas en adopción
+            val listingsSnap = db.collection(ADOPTION_COL).get().await()
+            val userPets = listingsSnap.documents.mapNotNull { it.toAdoptionListing() }
+
+            // Combinar: el catálogo admin primero, luego las de usuarios
+            // Evitar duplicados por id (no debería haberlos, pero por seguridad)
+            val adminIds = adminPets.map { it.id }.toSet()
+            adminPets + userPets.filter { it.id !in adminIds }
+        } catch (_: Exception) {
+            MockPetShopRepository.getPets()
         }
-    } catch (_: Exception) {
-        MockPetShopRepository.getPets()
     }
 
     // ── Siembra con upload a Storage ──────────────────────────────────────────
@@ -60,7 +72,6 @@ object FirestorePetsRepository {
         return try {
             val batch = db.batch()
             val seeded = pets.map { pet ->
-                // Subir imagen a Firebase Storage si tenemos contexto
                 val imageUrl = if (context != null && pet.imageRes != null) {
                     val bytes = context.drawableToJpegBytes(pet.imageRes)
                     uploadImageToStorage("catalog/pets/${pet.id}.jpg", bytes)
@@ -73,13 +84,14 @@ object FirestorePetsRepository {
             batch.commit().await()
             seeded
         } catch (_: Exception) {
-            pets   // sin red: devolvemos el mock igualmente
+            pets
         }
     }
 }
 
 // ── Extensiones privadas ──────────────────────────────────────────────────────
 
+/** Convierte un documento de la colección "pets" (admin) en Pet. */
 private fun DocumentSnapshot.toPet(): Pet? = try {
     val name = getString("name") ?: return null
     Pet(
@@ -94,7 +106,28 @@ private fun DocumentSnapshot.toPet(): Pet? = try {
         personality  = getString("personality")  ?: "",
         requirements = getString("requirements") ?: "",
         imageUrl     = getString("imageUrl"),
-        imageRes     = getString("imageKey").toDrawableRes()
+        imageRes     = getString("imageKey").toDrawableRes(),
+        ownerUid     = getString("ownerUid")
+    )
+} catch (_: Exception) { null }
+
+/** Convierte un documento de la colección "adoptionListings" (usuario) en Pet. */
+private fun DocumentSnapshot.toAdoptionListing(): Pet? = try {
+    val name = getString("name") ?: return null
+    Pet(
+        id           = id,                             // Firestore doc ID = petId del usuario
+        name         = name,
+        age          = getString("age")          ?: "",
+        breed        = getString("breed")        ?: "",
+        gender       = getString("gender")       ?: "",
+        size         = getString("size")         ?: "",
+        health       = getString("health")       ?: "",
+        vaccines     = getString("vaccines")     ?: "",
+        personality  = getString("personality")  ?: "",
+        requirements = getString("requirements") ?: "",
+        imageUrl     = getString("imageUrl"),
+        imageRes     = null,
+        ownerUid     = getString("ownerUid")
     )
 } catch (_: Exception) { null }
 
@@ -110,7 +143,8 @@ private fun Pet.toFirestoreMap(): Map<String, Any?> = mapOf(
     "personality"  to personality,
     "requirements" to requirements,
     "imageKey"     to imageRes.toImageKey(),
-    "imageUrl"     to imageUrl
+    "imageUrl"     to imageUrl,
+    "ownerUid"     to ownerUid
 )
 
 private fun String?.toDrawableRes(): Int? = when (this) {

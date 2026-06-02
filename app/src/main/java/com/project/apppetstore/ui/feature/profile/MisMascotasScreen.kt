@@ -23,14 +23,24 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Cancel
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.Pets
+import androidx.compose.material.icons.rounded.ChatBubble
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -55,6 +65,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -73,6 +84,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.project.apppetstore.R
 import com.project.apppetstore.data.model.UserPet
 import com.project.apppetstore.ui.components.SecondaryButton
@@ -81,17 +94,30 @@ private val MM_AVAILABLE_TRAITS = listOf(
     "Jugueton", "Tranquilo", "Sociable", "Energetico", "Carinoso", "Obediente"
 )
 private val MM_SPECIES_OPTIONS = listOf("Perro", "Gato")
+private val MM_GENDER_OPTIONS = listOf("Macho", "Hembra")
+private val MM_SIZE_OPTIONS = listOf("Pequeno", "Mediano", "Grande")
+
+// ── Data class para solicitudes de adopción ──────────────────────────────────
+data class AdoptionRequest(
+    val id: String = "",
+    val title: String = "",
+    val message: String = "",
+    val chatId: String = "",
+    val timestamp: Long = 0L
+)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun MisMascotasScreen(
-    uiState         : PetsUiState,
-    onAddPet        : (name: String, species: String, age: String, traits: List<String>, photoUri: Uri?) -> Unit,
-    onUpdatePet     : (petId: String, name: String, species: String, age: String, traits: List<String>, photoUri: Uri?) -> Unit,
-    onDeletePet     : (petId: String) -> Unit,
-    onClearResult   : () -> Unit,
-    onBack          : () -> Unit,
-    modifier        : Modifier = Modifier
+    uiState          : PetsUiState,
+    onAddPet         : (name: String, species: String, age: String, gender: String, size: String, health: String, vaccines: String, requirements: String, traits: List<String>, photoUri: Uri?) -> Unit,
+    onUpdatePet      : (petId: String, name: String, species: String, age: String, gender: String, size: String, health: String, vaccines: String, requirements: String, traits: List<String>, photoUri: Uri?) -> Unit,
+    onDeletePet      : (petId: String) -> Unit,
+    onToggleAdoption : (petId: String) -> Unit,
+    onClearResult    : () -> Unit,
+    onBack           : () -> Unit,
+    onOpenAdoptionChat: (chatId: String) -> Unit = {},
+    modifier         : Modifier = Modifier
 ) {
     val pets      = uiState.pets
     val isLoading = uiState.isLoading
@@ -103,12 +129,65 @@ fun MisMascotasScreen(
     var petToDelete by remember { mutableStateOf<UserPet?>(null) }
     val sheetState  = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // Cerrar sheet automáticamente cuando Firebase termine
+    // ── Solicitudes de adopción (notificaciones tipo "pet") ─────────────────────
+    var adoptionRequests by remember { mutableStateOf<List<AdoptionRequest>>(emptyList()) }
+    var isLoadingRequests by remember { mutableStateOf(true) }
+
+    // ── Cerrar sheet automáticamente cuando Firebase termine
     var waitingForSave by remember { mutableStateOf(false) }
     LaunchedEffect(isSaving) {
         if (waitingForSave && !isSaving) {
             showSheet      = false
             waitingForSave = false
+        }
+    }
+
+    // ── Escuchar solicitudes de adopción en tiempo real ───────────────────────
+    val auth = FirebaseAuth.getInstance()
+    val firestore = FirebaseFirestore.getInstance()
+    DisposableEffect(Unit) {
+        val uid = auth.currentUser?.uid
+        if (uid == null) {
+            adoptionRequests = emptyList()
+            isLoadingRequests = false
+            onDispose { }
+        } else {
+            val reg = firestore.collection("users").document(uid)
+                .collection("notifications")
+                .whereEqualTo("type", "pet")
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .addSnapshotListener { snap, error ->
+                    if (error != null) {
+                        isLoadingRequests = false
+                        return@addSnapshotListener
+                    }
+
+                    val raw = snap?.documents?.mapNotNull { doc ->
+                        runCatching {
+                            val cId = doc.getString("chatId") ?: ""
+                            val resolved = doc.getBoolean("resolved") ?: false
+                            if (resolved) return@runCatching null
+                            if (cId.isBlank()) return@runCatching null
+                            AdoptionRequest(
+                                id        = doc.id,
+                                title     = doc.getString("title") ?: "Solicitud de adopción",
+                                message   = doc.getString("message") ?: "Nuevo mensaje",
+                                chatId    = cId,
+                                timestamp = doc.getLong("timestamp") ?: 0L
+                            )
+                        }.getOrNull()
+                    } ?: emptyList()
+
+                    val dedupByChat = raw
+                        .groupBy { it.chatId }
+                        .mapNotNull { (_, items) -> items.maxByOrNull { it.timestamp } }
+                        .sortedByDescending { it.timestamp }
+
+                    adoptionRequests = dedupByChat
+                    isLoadingRequests = false
+                }
+
+            onDispose { reg.remove() }
         }
     }
 
@@ -154,10 +233,96 @@ fun MisMascotasScreen(
                         fontWeight = FontWeight.Bold
                     )
                 }
-            }
-            HorizontalDivider()
+             }
+             HorizontalDivider()
 
-            // ── Contenido ─────────────────────────────────────────────────────
+             // ── Solicitudes de adopción (siempre visible para que el dueño la encuentre) ──
+             Column(
+                 modifier = Modifier
+                     .fillMaxWidth()
+                     .padding(horizontal = 16.dp, vertical = 16.dp),
+                 verticalArrangement = Arrangement.spacedBy(12.dp)
+             ) {
+                 Row(
+                     verticalAlignment = Alignment.CenterVertically,
+                     horizontalArrangement = Arrangement.spacedBy(8.dp)
+                 ) {
+                     Icon(
+                         imageVector = Icons.Rounded.ChatBubble,
+                         contentDescription = null,
+                         modifier = Modifier.size(20.dp),
+                         tint = MaterialTheme.colorScheme.primary
+                     )
+                     Text(
+                         text       = "Solicitudes de adopción",
+                         style      = MaterialTheme.typography.titleMedium,
+                         fontWeight = FontWeight.SemiBold
+                     )
+                     if (adoptionRequests.isNotEmpty()) {
+                         Box(
+                             modifier = Modifier
+                                 .size(24.dp)
+                                 .clip(CircleShape)
+                                 .background(MaterialTheme.colorScheme.error),
+                             contentAlignment = Alignment.Center
+                         ) {
+                             Text(
+                                 text       = adoptionRequests.size.toString(),
+                                 style      = MaterialTheme.typography.labelSmall,
+                                 color      = MaterialTheme.colorScheme.onError,
+                                 fontWeight = FontWeight.Bold
+                             )
+                         }
+                     }
+                 }
+
+                 when {
+                     isLoadingRequests -> {
+                         Row(
+                             verticalAlignment = Alignment.CenterVertically,
+                             horizontalArrangement = Arrangement.spacedBy(8.dp)
+                         ) {
+                             CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                             Text(
+                                 text = "Cargando solicitudes...",
+                                 style = MaterialTheme.typography.bodySmall,
+                                 color = MaterialTheme.colorScheme.onSurfaceVariant
+                             )
+                         }
+                     }
+
+                     adoptionRequests.isEmpty() -> {
+                         Card(
+                             modifier = Modifier.fillMaxWidth(),
+                             colors = CardDefaults.cardColors(
+                                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                             )
+                         ) {
+                             Text(
+                                 text = "Aún no tienes solicitudes de adopción. Cuando alguien te escriba por una mascota, aparecerá aquí.",
+                                 style = MaterialTheme.typography.bodySmall,
+                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                 modifier = Modifier.padding(12.dp)
+                             )
+                         }
+                     }
+
+                     else -> {
+                         LazyColumn(
+                             verticalArrangement = Arrangement.spacedBy(8.dp),
+                             modifier = Modifier.fillMaxWidth()
+                         ) {
+                             items(adoptionRequests, key = { it.id }) { request ->
+                                 AdoptionRequestCard(
+                                     request = request,
+                                     onClick = { onOpenAdoptionChat(request.chatId) }
+                                 )
+                             }
+                         }
+                     }
+                 }
+             }
+             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             when {
                 isLoading -> {
                     Box(
@@ -189,7 +354,12 @@ fun MisMascotasScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text("🐾", fontSize = 56.sp)
+                            Icon(
+                                imageVector = Icons.Rounded.Pets,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.outlineVariant
+                            )
                             Text(
                                 text       = "Sin mascotas registradas",
                                 style      = MaterialTheme.typography.titleMedium,
@@ -218,9 +388,11 @@ fun MisMascotasScreen(
                     ) {
                         items(pets, key = { it.id }) { pet ->
                             MisMascotasPetCard(
-                                pet      = pet,
-                                onEdit   = { editingPet = pet; showSheet = true },
-                                onDelete = { petToDelete = pet }
+                                pet              = pet,
+                                isTogglingAdopt  = pet.id in uiState.togglingAdoptionIds,
+                                onEdit           = { editingPet = pet; showSheet = true },
+                                onDelete         = { petToDelete = pet },
+                                onToggleAdoption = { onToggleAdoption(pet.id) }
                             )
                         }
                     }
@@ -240,7 +412,13 @@ fun MisMascotasScreen(
         AlertDialog(
             onDismissRequest = onClearResult,
             icon = {
-                Text(text = if (isSuccess) "✅" else "❌", fontSize = 32.sp)
+                Icon(
+                    imageVector = if (isSuccess) Icons.Rounded.CheckCircle else Icons.Rounded.Cancel,
+                    contentDescription = null,
+                    modifier = Modifier.size(40.dp),
+                    tint = if (isSuccess) MaterialTheme.colorScheme.primary
+                           else MaterialTheme.colorScheme.error
+                )
             },
             title = {
                 Text(
@@ -299,12 +477,12 @@ fun MisMascotasScreen(
                 pet          = editingPet,
                 existingPets = pets,
                 isSaving     = isSaving,
-                onSave       = { name, species, age, traits, photoUri ->
+                onSave       = { name, species, age, gender, size, health, vaccines, requirements, traits, photoUri ->
                     waitingForSave = true
                     if (editingPet == null)
-                        onAddPet(name, species, age, traits, photoUri)
+                        onAddPet(name, species, age, gender, size, health, vaccines, requirements, traits, photoUri)
                     else
-                        onUpdatePet(editingPet!!.id, name, species, age, traits, photoUri)
+                        onUpdatePet(editingPet!!.id, name, species, age, gender, size, health, vaccines, requirements, traits, photoUri)
                 },
                 onCancel = { if (!isSaving) showSheet = false }
             )
@@ -318,9 +496,11 @@ fun MisMascotasScreen(
 
 @Composable
 private fun MisMascotasPetCard(
-    pet      : UserPet,
-    onEdit   : () -> Unit,
-    onDelete : () -> Unit
+    pet              : UserPet,
+    isTogglingAdopt  : Boolean,
+    onEdit           : () -> Unit,
+    onDelete         : () -> Unit,
+    onToggleAdoption : () -> Unit
 ) {
     ElevatedCard(
         shape     = MaterialTheme.shapes.large,
@@ -363,14 +543,35 @@ private fun MisMascotasPetCard(
                 overflow   = TextOverflow.Ellipsis
             )
 
-            val speciesEmoji = if (pet.species == "Gato") "🐱" else "🐶"
-            Text(
-                text    = "$speciesEmoji ${pet.species}${if (pet.age.isNotBlank()) " · ${pet.age}" else ""}",
-                style   = MaterialTheme.typography.bodySmall,
-                color   = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(3.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Pets,
+                    contentDescription = null,
+                    modifier = Modifier.size(12.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text     = "${pet.species}${if (pet.age.isNotBlank()) " · ${pet.age}" else ""}",
+                    style    = MaterialTheme.typography.bodySmall,
+                    color    = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            if (pet.gender.isNotBlank() || pet.size.isNotBlank()) {
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = listOfNotNull(pet.gender.takeIf { it.isNotBlank() }, pet.size.takeIf { it.isNotBlank() }).joinToString(" · "),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
 
             if (pet.traits.isNotEmpty()) {
                 Spacer(Modifier.height(4.dp))
@@ -383,7 +584,55 @@ private fun MisMascotasPetCard(
                 )
             }
 
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(8.dp))
+
+            // ── Botón "Dar en adopción" ──────────────────────────────────────
+            val isAdoption = pet.isAvailableForAdoption
+            Surface(
+                onClick      = { if (!isTogglingAdopt) onToggleAdoption() },
+                shape        = MaterialTheme.shapes.small,
+                color        = when {
+                    isTogglingAdopt -> MaterialTheme.colorScheme.surfaceVariant
+                    isAdoption      -> MaterialTheme.colorScheme.primaryContainer
+                    else            -> MaterialTheme.colorScheme.surfaceVariant
+                },
+                modifier     = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier              = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                    verticalAlignment     = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    if (isTogglingAdopt) {
+                        CircularProgressIndicator(
+                            modifier    = Modifier.size(13.dp),
+                            strokeWidth = 1.5.dp,
+                            color       = MaterialTheme.colorScheme.primary
+                        )
+                    } else {
+                        Icon(
+                            imageVector        = if (isAdoption) Icons.Rounded.Favorite
+                                                 else Icons.Rounded.FavoriteBorder,
+                            contentDescription = null,
+                            modifier           = Modifier.size(13.dp),
+                            tint               = if (isAdoption) MaterialTheme.colorScheme.primary
+                                                 else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text(
+                        text  = when {
+                            isTogglingAdopt -> if (isAdoption) "Retirando…" else "Publicando…"
+                            isAdoption      -> "En adopción"
+                            else            -> "Dar en adopción"
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isAdoption || isTogglingAdopt) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(4.dp))
 
             Row(
                 horizontalArrangement = Arrangement.End,
@@ -420,7 +669,7 @@ private fun MisMascotasFormSheet(
     pet          : UserPet?,
     existingPets : List<UserPet>,
     isSaving     : Boolean,
-    onSave       : (name: String, species: String, age: String, traits: List<String>, photoUri: Uri?) -> Unit,
+    onSave       : (name: String, species: String, age: String, gender: String, size: String, health: String, vaccines: String, requirements: String, traits: List<String>, photoUri: Uri?) -> Unit,
     onCancel     : () -> Unit
 ) {
     var name    by remember(pet) { mutableStateOf(pet?.name ?: "") }
@@ -431,6 +680,15 @@ private fun MisMascotasFormSheet(
         )
     }
     var age           by remember(pet) { mutableStateOf(pet?.age ?: "") }
+    var gender        by remember(pet) {
+        mutableStateOf(pet?.gender?.takeIf { it in MM_GENDER_OPTIONS } ?: MM_GENDER_OPTIONS[0])
+    }
+    var size          by remember(pet) {
+        mutableStateOf(pet?.size?.takeIf { it in MM_SIZE_OPTIONS } ?: MM_SIZE_OPTIONS[1])
+    }
+    var health        by remember(pet) { mutableStateOf(pet?.health ?: "") }
+    var vaccines      by remember(pet) { mutableStateOf(pet?.vaccines ?: "") }
+    var requirements  by remember(pet) { mutableStateOf(pet?.requirements ?: "") }
     val selectedTraits = remember(pet) {
         mutableStateListOf<String>().apply { addAll(pet?.traits ?: emptyList()) }
     }
@@ -518,13 +776,17 @@ private fun MisMascotasFormSheet(
                         onClick  = { if (!isSaving) species = option },
                         shape    = SegmentedButtonDefaults.itemShape(index, MM_SPECIES_OPTIONS.size),
                         label    = {
-                            Text(
-                                text = when (option) {
-                                    "Perro" -> "🐶 Perro"
-                                    "Gato"  -> "🐱 Gato"
-                                    else    -> option
-                                }
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Pets,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(option)
+                            }
                         }
                     )
                 }
@@ -540,6 +802,67 @@ private fun MisMascotasFormSheet(
             shape         = MaterialTheme.shapes.medium,
             singleLine    = true,
             enabled       = !isSaving
+        )
+
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Género", style = MaterialTheme.typography.labelLarge)
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                MM_GENDER_OPTIONS.forEachIndexed { index, option ->
+                    SegmentedButton(
+                        selected = gender == option,
+                        onClick = { if (!isSaving) gender = option },
+                        shape = SegmentedButtonDefaults.itemShape(index, MM_GENDER_OPTIONS.size),
+                        label = { Text(option) }
+                    )
+                }
+            }
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Tamaño", style = MaterialTheme.typography.labelLarge)
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                MM_SIZE_OPTIONS.forEachIndexed { index, option ->
+                    SegmentedButton(
+                        selected = size == option,
+                        onClick = { if (!isSaving) size = option },
+                        shape = SegmentedButtonDefaults.itemShape(index, MM_SIZE_OPTIONS.size),
+                        label = { Text(option) }
+                    )
+                }
+            }
+        }
+
+        OutlinedTextField(
+            value = health,
+            onValueChange = { health = it },
+            label = { Text("Estado de salud") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            enabled = !isSaving,
+            minLines = 2,
+            maxLines = 4
+        )
+
+        OutlinedTextField(
+            value = vaccines,
+            onValueChange = { vaccines = it },
+            label = { Text("Vacunas") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            enabled = !isSaving,
+            minLines = 1,
+            maxLines = 3
+        )
+
+        OutlinedTextField(
+            value = requirements,
+            onValueChange = { requirements = it },
+            label = { Text("Requisitos de adopción") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            enabled = !isSaving,
+            minLines = 2,
+            maxLines = 5
         )
 
         // ── Características ───────────────────────────────────────────────────
@@ -591,6 +914,11 @@ private fun MisMascotasFormSheet(
                             trimmedName,
                             species,
                             age.trim(),
+                            gender,
+                            size,
+                            health.trim(),
+                            vaccines.trim(),
+                            requirements.trim(),
                             selectedTraits.toList(),
                             selectedPhotoUri
                         )
@@ -614,3 +942,74 @@ private fun MisMascotasFormSheet(
         Spacer(modifier = Modifier.height(24.dp))
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tarjeta de solicitud de adopción
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun AdoptionRequestCard(
+    request: AdoptionRequest,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+        ),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Pets,
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        text       = request.title,
+                        style      = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines   = 1,
+                        overflow   = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text       = request.message,
+                        style      = MaterialTheme.typography.bodySmall,
+                        color      = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines   = 2,
+                        overflow   = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            // ── Botón de acción ──────────────────────────────────────────────
+            Button(
+                onClick = onClick,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Text("Ver solicitud")
+            }
+        }
+    }
+}
+

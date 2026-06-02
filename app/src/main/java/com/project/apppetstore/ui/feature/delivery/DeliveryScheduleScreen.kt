@@ -27,6 +27,7 @@ import androidx.compose.material.icons.rounded.AccessTime
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.LocationOff
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.MyLocation
@@ -681,16 +682,36 @@ private fun MapPickerFullScreen(
                 }
 
                 // ── Barra de coordenadas ──────────────────────────────────────
-                Box(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .padding(horizontal = 20.dp, vertical = 10.dp)
+                        .padding(horizontal = 20.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
+                    if (isLocating) {
+                        CircularProgressIndicator(
+                            modifier    = Modifier.size(14.dp),
+                            strokeWidth = 2.dp,
+                            color       = MaterialTheme.colorScheme.tertiary
+                        )
+                    } else {
+                        Icon(
+                            imageVector = if (pendingLatLng != null) Icons.Rounded.LocationOn
+                                          else Icons.Rounded.LocationOff,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = when {
+                                pendingLatLng != null -> MaterialTheme.colorScheme.primary
+                                else                  -> MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                        )
+                    }
                     Text(
                         text = pendingLatLng
-                            ?.let { "📍 %.5f, %.5f".format(it.latitude, it.longitude) }
-                            ?: if (isLocating) "⏳ Buscando señal GPS del dispositivo…"
+                            ?.let { "%.5f, %.5f".format(it.latitude, it.longitude) }
+                            ?: if (isLocating) "Buscando señal GPS del dispositivo…"
                                else "Sin ubicación — toca el mapa o el botón GPS",
                         style = MaterialTheme.typography.bodySmall,
                         color = when {

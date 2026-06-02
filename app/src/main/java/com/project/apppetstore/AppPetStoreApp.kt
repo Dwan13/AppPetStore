@@ -452,28 +452,52 @@ fun AppPetShopApp() {
                     )
                 }
 
-                // ── Adoption ──────────────────────────────────────────────────
+                // ── Adoption (interesado: petId | dueño desde notif: chatId) ─────
                 composable(
-                    route     = "adoption?petId={petId}",
-                    arguments = listOf(navArgument("petId") { type = NavType.StringType; nullable = true })
+                    route     = "adoption?petId={petId}&chatId={chatId}",
+                    arguments = listOf(
+                        navArgument("petId")  { type = NavType.StringType; nullable = true; defaultValue = null },
+                        navArgument("chatId") { type = NavType.StringType; nullable = true; defaultValue = null }
+                    )
                 ) { backStack ->
                     val viewModel: AdoptionViewModel = viewModel()
-                    val petId = backStack.arguments?.getString("petId")
-                    LaunchedEffect(petId) { viewModel.setCurrentPet(petId) }
+                    val petId  = backStack.arguments?.getString("petId").takeIf { !it.isNullOrBlank() }
+                    val chatId = backStack.arguments?.getString("chatId").takeIf { !it.isNullOrBlank() }
+
+                    LaunchedEffect(Unit) { viewModel.loadPets() }
+
+                    // chatId directo (dueño desde notificación) tiene prioridad
+                    LaunchedEffect(chatId) {
+                        if (chatId != null) viewModel.openChatDirect(chatId)
+                    }
+                    // petId normal (interesado selecciona mascota)
+                    LaunchedEffect(petId, viewModel.uiState.isLoadingPets) {
+                        if (chatId == null && !viewModel.uiState.isLoadingPets) {
+                            viewModel.setCurrentPet(petId)
+                        }
+                    }
+
                     AdoptionScreen(
                         uiState                   = viewModel.uiState,
                         onInputChange             = viewModel::onInputChange,
                         onSendMessage             = viewModel::sendMessage,
+                        onDeleteMessage           = viewModel::deleteMessage,
                         onAttachMedia             = viewModel::attachMedia,
                         onRemovePendingAttachment = viewModel::removePendingAttachment,
                         selectedPetId             = petId,
-                        // UC-25: navegar al perfil de la mascota sorpresa
+                        isOwnerViewingChat        = chatId != null,
+                        // El usuario interesado toca una mascota en el carrusel → navega a su detalle
+                        onPetSelected             = { selectedId ->
+                            navController.navigate("adoption?petId=$selectedId") {
+                                launchSingleTop = true
+                            }
+                        },
                         onNavigateToPet           = { discoveredPetId ->
                             navController.navigate("adoption?petId=$discoveredPetId") {
                                 launchSingleTop = true
                             }
                         },
-                        onBack                    = { navController.popBackStack() }
+                        onBack = { navController.popBackStack() }
                     )
                 }
 
@@ -535,10 +559,18 @@ fun AppPetShopApp() {
                 // ── Notifications ─────────────────────────────────────────────
                 composable(AppDestination.Notifications.route) {
                     NotificationsScreen(
-                        uiState           = notifsState,
-                        onBack            = { navController.popBackStack() },
-                        onMarkAllSeen     = notificationsViewModel::markAllSeen,
-                        lastSeenTimestamp = notifsState.lastSeenTs
+                        uiState             = notifsState,
+                        onBack              = { navController.popBackStack() },
+                        onMarkAllSeen       = notificationsViewModel::markAllSeen,
+                        lastSeenTimestamp   = notifsState.lastSeenTs,
+                        onNotificationClick = { notif ->
+                            // Solo las notificaciones de adopción con chatId navegan al chat
+                            if (notif.type == "pet" && notif.chatId != null) {
+                                navController.navigate("adoption?chatId=${notif.chatId}") {
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
                     )
                 }
 
@@ -557,27 +589,37 @@ fun AppPetShopApp() {
                 composable(AppDestination.MisMascotas.route) {
                     MisMascotasScreen(
                         uiState       = petsViewModel.uiState,
-                        onAddPet      = { name, species, age, traits, photoUri ->
-                            petsViewModel.addPet(name, species, age, traits, photoUri)
+                        onAddPet      = { name, species, age, gender, size, health, vaccines, requirements, traits, photoUri ->
+                            petsViewModel.addPet(name, species, age, gender, size, health, vaccines, requirements, traits, photoUri)
                             notificationsViewModel.addLocalNotification(
-                                title   = "🐾 Mascota registrada",
+                                title   = "Mascota registrada",
                                 message = "$name ha sido añadida a tu perfil correctamente.",
-                                type    = "pet"
+                                type    = "system"
                             )
                         },
-                        onUpdatePet   = petsViewModel::updatePet,
-                        onDeletePet   = { petId ->
+                        onUpdatePet      = { petId, name, species, age, gender, size, health, vaccines, requirements, traits, photoUri ->
+                            petsViewModel.updatePet(petId, name, species, age, gender, size, health, vaccines, requirements, traits, photoUri)
+                        },
+                        onDeletePet      = { petId ->
                             val petName = petsViewModel.uiState.pets
                                 .find { it.id == petId }?.name ?: "La mascota"
                             petsViewModel.deletePet(petId)
                             notificationsViewModel.addLocalNotification(
-                                title   = "🗑️ Mascota eliminada",
+                                title   = "Mascota eliminada",
                                 message = "$petName ha sido eliminada de tu perfil.",
-                                type    = "pet"
+                                type    = "system"
                             )
                         },
-                        onClearResult = petsViewModel::clearOperationResult,
-                        onBack        = { navController.popBackStack() }
+                        onToggleAdoption = { petId ->
+                            petsViewModel.toggleAdoption(petId)
+                        },
+                        onClearResult    = petsViewModel::clearOperationResult,
+                        onOpenAdoptionChat = { chatId ->
+                            navController.navigate("adoption?chatId=$chatId") {
+                                launchSingleTop = true
+                            }
+                        },
+                        onBack           = { navController.popBackStack() }
                     )
                 }
             }

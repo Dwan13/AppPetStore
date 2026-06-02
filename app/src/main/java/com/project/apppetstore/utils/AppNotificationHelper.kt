@@ -22,10 +22,11 @@ import com.project.apppetstore.R
 object AppNotificationHelper {
 
     // ── Canales de notificación ───────────────────────────────────────────────
-    const val CHANNEL_AUTH   = "channel_auth"
-    const val CHANNEL_ORDERS = "channel_orders"
-    const val CHANNEL_PETS   = "channel_pets"
-    const val CHANNEL_PROMOS = "channel_promos"
+    const val CHANNEL_AUTH     = "channel_auth"
+    const val CHANNEL_ORDERS   = "channel_orders"
+    const val CHANNEL_PETS     = "channel_pets"
+    const val CHANNEL_PROMOS   = "channel_promos"
+    const val CHANNEL_ADOPTION = "channel_adoption"
 
     // ── IDs fijos para eventos únicos ─────────────────────────────────────────
     private const val ID_LOGIN    = 1001
@@ -101,6 +102,18 @@ object AppNotificationHelper {
             id        = uniqueId(),
             title     = "Mascota eliminada",
             message   = "$petName ha sido eliminada de tu perfil."
+        )
+    }
+
+    // ── Interés en adopción ───────────────────────────────────────────────────
+
+    fun showAdoptionInterestNotification(context: Context, petName: String) {
+        show(
+            context   = context,
+            channelId = CHANNEL_ADOPTION,
+            id        = uniqueId(),
+            title     = "Nuevo interesado en $petName",
+            message   = "Alguien quiere adoptar a $petName. Abre el chat para responder."
         )
     }
 

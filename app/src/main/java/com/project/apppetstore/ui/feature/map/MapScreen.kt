@@ -739,7 +739,7 @@ private fun MapContent(
                         trackColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                     Text(
-                        text  = "Calculando ruta real...",
+                        text  = "Calculando ruta ...",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -940,7 +940,7 @@ private fun DeliveryStatusCard(
                             color      = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
-                            text  = "Carlos M. está en la puerta 🛵",
+                            text  = "Carlos M. está en la puerta",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

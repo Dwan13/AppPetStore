@@ -79,7 +79,7 @@ class OrdersViewModel(app: Application) : AndroidViewModel(app) {
             .collection("notifications")
             .add(
                 mapOf(
-                    "title"     to "✅ Pedido confirmado",
+                    "title"     to "Pedido confirmado",
                     "message"   to "Tu pedido de ${order.productName} fue recibido y está siendo procesado.",
                     "type"      to "order",
                     "timestamp" to System.currentTimeMillis()

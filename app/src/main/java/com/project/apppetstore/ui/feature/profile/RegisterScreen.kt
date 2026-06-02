@@ -11,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -88,7 +89,7 @@ private fun passwordStrength(password: String): Triple<Float, String, Color> {
         1    -> Triple(0.20f, "Muy corta",  Color(0xFFD32F2F))
         2    -> Triple(0.45f, "Débil",      Color(0xFFF57C00))
         3    -> Triple(0.72f, "Aceptable",  Color(0xFFFBC02D))
-        else -> Triple(1.00f, "Fuerte 💪",  Color(0xFF388E3C))
+        else -> Triple(1.00f, "Fuerte",      Color(0xFF388E3C))
     }
 }
 
@@ -292,11 +293,22 @@ fun RegisterScreen(
                     color = strengthColor
                 )
                 if (password.isNotEmpty() && passFieldError == null) {
-                    Text(
-                        text  = "✓ Mínimo 8 caracteres, un número y una mayúscula",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.CheckCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(13.dp),
+                            tint = Color(0xFF388E3C)
+                        )
+                        Text(
+                            text  = "Mínimo 8 caracteres, un número y una mayúscula",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }

@@ -40,7 +40,13 @@ class AppPetStoreApplication : Application() {
                 AppNotificationHelper.CHANNEL_PROMOS,
                 "Promociones",
                 NotificationManager.IMPORTANCE_DEFAULT
-            ).apply { description = "Ofertas y descuentos especiales" }
+            ).apply { description = "Ofertas y descuentos especiales" },
+
+            NotificationChannel(
+                AppNotificationHelper.CHANNEL_ADOPTION,
+                "Adopción",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply { description = "Interesados en adoptar tus mascotas" }
         )
 
         channels.forEach { manager.createNotificationChannel(it) }
